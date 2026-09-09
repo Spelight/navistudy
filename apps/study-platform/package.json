@@ -1,0 +1,10 @@
+{
+  "name": "navistudy-platform",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "test": "node tests/contracts.mjs",
+    "test:visual": "node tests/visual.mjs",
+    "serve": "php -S 127.0.0.1:8787 public/router.php"
+  }
+}

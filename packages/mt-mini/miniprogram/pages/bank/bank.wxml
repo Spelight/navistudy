@@ -1,0 +1,49 @@
+<view class="page bank-page">
+  <view class="appbar">
+    <view>
+      <view class="top-title">题库</view>
+      <view class="bank-sub">搜索、筛选并从任意题目开始</view>
+    </view>
+    <button class="start-mini" bindtap="startPractice">开始</button>
+  </view>
+
+  <view class="summary-line">
+    <view><text class="summary-num">{{total}}</text><text class="summary-label"> 道匹配题目</text></view>
+    <view class="summary-progress">已作答 {{stats.answered}}</view>
+  </view>
+
+  <scroll-view class="filter-scroll" scroll-x enhanced show-scrollbar="false">
+    <view class="filter-row">
+      <button wx:for="{{chapters}}" wx:key="id" class="filter-chip {{activeChapter===item.id?'active':''}}" data-chapter="{{item.id}}" bindtap="selectChapter">{{item.title}}</button>
+    </view>
+  </scroll-view>
+
+  <scroll-view class="type-scroll" scroll-x enhanced show-scrollbar="false">
+    <view class="filter-row">
+      <button wx:for="{{typeTabs}}" wx:key="id" class="type-chip {{activeType===item.id?'active':''}}" data-type="{{item.id}}" bindtap="selectType">{{item.title}}</button>
+    </view>
+  </scroll-view>
+
+  <input class="input search" placeholder="搜索题干、选项或资料来源" value="{{query}}" bindinput="onSearch" />
+
+  <view wx:if="{{!rows.length}}" class="empty panel">没有匹配题目，请调整关键词或筛选条件。</view>
+
+  <view wx:for="{{rows}}" wx:key="id" class="question-row panel" data-id="{{item.id}}" bindtap="openQuestion">
+    <view class="row-head">
+      <view class="row-tags">
+        <text class="type-tag">{{item.typeText}}</text>
+        <text wx:if="{{item.legacy}}" class="legacy-tag">历史题</text>
+      </view>
+      <text class="status {{item.statusClass}}">{{item.statusText}}</text>
+    </view>
+    <view class="row-stem">{{item.stem}}</view>
+    <view class="row-foot">
+      <text class="row-source">{{item.chapter}} · {{item.source}}</text>
+      <text wx:if="{{item.favorite}}" class="fav-state">已收藏</text>
+    </view>
+  </view>
+
+  <button wx:if="{{hasMore}}" class="load-more" bindtap="loadMore">再显示 40 题</button>
+  <view wx:if="{{rows.length && !hasMore}}" class="list-end">已显示全部 {{total}} 道题</view>
+</view>
+

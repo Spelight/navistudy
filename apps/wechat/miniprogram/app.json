@@ -1,0 +1,40 @@
+{
+  "pages": [
+    "pages/portal/portal",
+    "pages/passport/passport"
+  ],
+  "subPackages": [
+    {
+      "root": "words",
+      "name": "NaviWords",
+      "pages": [
+        "pages/index/index",
+        "pages/books/books",
+        "pages/me/me",
+        "pages/book/book",
+        "pages/practice/practice",
+        "pages/wrong/wrong"
+      ]
+    },
+    {
+      "root": "mt",
+      "name": "NaviMT 军理通",
+      "pages": [
+        "pages/index/index",
+        "pages/bank/bank",
+        "pages/me/me",
+        "pages/practice/practice",
+        "pages/wrong/wrong"
+      ]
+    }
+  ],
+  "window": {
+    "navigationBarTitleText": "NaviStudy",
+    "navigationBarBackgroundColor": "#050608",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#050608"
+  },
+  "lazyCodeLoading": "requiredComponents",
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

@@ -1,0 +1,9 @@
+{
+  "name": "military-theory-wechat-miniprogram",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "sync-data": "node scripts/sync-question-bank.cjs",
+    "test": "node tests/question-bank.test.cjs && node tests/study-store.test.cjs && node tests/page-logic.test.cjs && node tests/wxml-structure.test.cjs"
+  }
+}

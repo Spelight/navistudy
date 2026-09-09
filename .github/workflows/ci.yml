@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  node-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm --prefix apps/study-platform ci --ignore-scripts
+        if: hashFiles('apps/study-platform/package-lock.json') != ''
+      - run: npm --prefix apps/study-platform test
+      - run: npm --prefix apps/wechat test
+
+  php-api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: sqlite3, pdo_sqlite
+      - run: php apps/study-platform/tests/run.php

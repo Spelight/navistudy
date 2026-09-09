@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>正在连接 Navi Passport</title></head>
+<body><main><h1>正在连接 Navi Passport</h1><p id="status">请稍候...</p></main><script src="passport-sync.js"></script><script>
+var clientId = location.hostname.indexOf('words') === 0 ? 'words-web' : 'mt-web';
+NaviPassport.finishLogin(clientId, location.origin + '/navistudy-callback.html').catch(function (error) {
+  document.getElementById('status').textContent = error.message || '登录失败，请返回后重试。';
+});
+</script></body>
+</html>

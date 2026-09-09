@@ -1,0 +1,56 @@
+<view class="passport-page">
+  <view class="passport-brand">
+    <view class="key-mark"><view></view></view>
+    <view class="brand-copy"><text class="title">Navi Passport</text><text class="subtitle">一份身份，两套独立学习记录</text></view>
+  </view>
+
+  <view wx:if="{{newRecoveryCode}}" class="recovery-stage">
+    <view class="stage-kicker">重要凭据</view>
+    <text class="stage-title">请保存恢复码</text>
+    <text class="stage-help">忘记密码时，它是唯一的找回方式。恢复码只显示这一次。</text>
+    <text class="recovery-code" selectable>{{newRecoveryCode}}</text>
+    <button class="primary" bindtap="copyRecovery">{{recoveryCopied ? '已复制恢复码' : '复制恢复码'}}</button>
+    <button class="text-button" disabled="{{!recoveryCopied}}" bindtap="finishRecovery">我已妥善保存，继续</button>
+  </view>
+
+  <block wx:else>
+    <view wx:if="{{account}}" class="account-surface">
+      <view class="account-head">
+        <view class="avatar">{{accountInitial}}</view>
+        <view class="account-copy"><text>{{account.username}}</text><text>Navi Passport 已连接</text></view>
+        <view class="connected-dot"></view>
+      </view>
+
+      <view class="sync-list">
+        <view class="sync-row"><view><text>NaviWords</text><text>英语词汇</text></view><text class="sync-value">{{wordsStatus}}</text></view>
+        <view class="sync-row"><view><text>NaviMT 军理通</text><text>军事理论</text></view><text class="sync-value">{{mtStatus}}</text></view>
+      </view>
+
+      <view wx:if="{{error}}" class="error" role="alert">{{error}}</view>
+      <view class="account-actions">
+        <button class="primary" loading="{{busy}}" disabled="{{busy}}" bindtap="syncNow">立即同步两项记录</button>
+        <button class="logout-button" disabled="{{busy}}" bindtap="logout">退出当前账号</button>
+      </view>
+    </view>
+
+    <view wx:else class="auth-surface">
+      <view class="tabs" role="tablist">
+        <button class="{{mode==='login'?'active':''}}" disabled="{{busy}}" data-mode="login" bindtap="setMode">登录</button>
+        <button class="{{mode==='register'?'active':''}}" disabled="{{busy}}" data-mode="register" bindtap="setMode">注册</button>
+        <button class="{{mode==='recover'?'active':''}}" disabled="{{busy}}" data-mode="recover" bindtap="setMode">恢复</button>
+      </view>
+      <view class="auth-heading"><text>{{modeTitle}}</text><text>{{modeNote}}</text></view>
+      <label><text>用户名</text><input disabled="{{busy}}" maxlength="40" placeholder="输入 Navi Passport 用户名" value="{{username}}" bindinput="onUsername" /></label>
+      <label wx:if="{{mode==='recover'}}"><text>恢复码</text><input disabled="{{busy}}" placeholder="输入完整恢复码" value="{{recoveryCode}}" bindinput="onRecovery" /></label>
+      <label>
+        <view class="field-label"><text>{{mode==='recover'?'新密码':'密码'}}</text><button disabled="{{busy}}" bindtap="togglePassword">{{passwordVisible?'隐藏':'显示'}}</button></view>
+        <input disabled="{{busy}}" password="{{!passwordVisible}}" maxlength="128" placeholder="{{mode==='login'?'输入密码':'至少 6 个字符'}}" value="{{password}}" bindinput="onPassword" />
+      </label>
+      <label wx:if="{{mode!=='login'}}"><text>确认密码</text><input disabled="{{busy}}" password="{{!passwordVisible}}" maxlength="128" placeholder="再次输入密码" value="{{confirmPassword}}" bindinput="onConfirmPassword" /></label>
+      <view wx:if="{{error}}" class="error" role="alert">{{error}}</view>
+      <button class="primary" loading="{{busy}}" disabled="{{busy}}" bindtap="submit">{{submitLabel}}</button>
+    </view>
+  </block>
+
+  <view class="boundary"><text>NaviOJ 使用独立账号</text><text>Navi Passport 不会读取或修改 OJ 数据</text></view>
+</view>

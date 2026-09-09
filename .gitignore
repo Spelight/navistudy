@@ -1,0 +1,25 @@
+node_modules/
+dist/
+coverage/
+test-output/
+var/
+.env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite3
+*.db
+*.tar.gz
+*.zip
+*.bak
+*.log
+project.private.config.json
+
+# Local content packages are intentionally kept outside this repository.
+content/private/
+apps/*/src/data/private/
+packages/*/miniprogram/data/private/
+
+# Legacy local endpoints are kept out of the public source tree.
+apps/mt-web/public/userdata.php
+apps/*/public/*userdata.php

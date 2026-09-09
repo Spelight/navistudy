@@ -1,0 +1,106 @@
+<view class="page home">
+  <view class="appbar">
+    <picker mode="selector" range="{{bookNames}}" value="{{bookIndex}}" bindchange="changeBook">
+      <view class="book-pill"><text class="book-pill-label">{{activeBookTitle}}</text><text class="chev">v</text></view>
+    </picker>
+    <view class="nav-title">学习</view>
+    <view class="more-dot">...</view>
+  </view>
+
+  <view wx:if="{{!noticeHidden}}" class="notice panel">
+    <view class="notice-icon"></view>
+    <view class="notice-text">先选教材和 Unit，再开始背词；错题和收藏会自动进入复习范围。</view>
+    <view class="notice-close" bindtap="dismissNotice">×</view>
+  </view>
+
+  <view class="book-overview">
+    <view class="book-overview-copy">
+      <view class="book-name">{{activeBookTitle}}</view>
+      <view class="book-progress">当前范围 {{progressMastered}} / {{progressTotal}}</view>
+    </view>
+    <view class="percent">{{progressPercent}}%</view>
+  </view>
+  <view class="progress-line">
+    <view class="progress-fill" style="width: {{progressPercent}}%;"></view>
+  </view>
+
+  <view class="metric-grid">
+    <button class="metric panel" bindtap="goBooks">
+      <view class="metric-icon mastered-mark"></view>
+      <text class="metric-label">已掌握</text>
+      <text class="metric-num">{{progressMastered}}</text>
+      <text class="metric-sub">本范围词数</text>
+    </button>
+    <button class="metric panel" bindtap="startDefault">
+      <view class="metric-icon todo-mark"></view>
+      <text class="metric-label">待推进</text>
+      <text class="metric-num">{{remainingCount}}</text>
+      <text class="metric-sub">继续完成</text>
+    </button>
+    <button class="metric panel" bindtap="goWrong">
+      <view class="metric-icon wrong-mark"></view>
+      <text class="metric-label">错题</text>
+      <text class="metric-num">{{wrongCount}}</text>
+      <text class="metric-sub">待攻克</text>
+    </button>
+    <button class="metric panel" bindtap="goBooks">
+      <view class="metric-icon fav-mark"></view>
+      <text class="metric-label">收藏</text>
+      <text class="metric-num">{{favCount}}</text>
+      <text class="metric-sub">重点关注</text>
+    </button>
+  </view>
+
+  <view wx:if="{{lastProgressText}}" class="resume panel" bindtap="continuePractice">
+    <view class="resume-copy">
+      <view class="resume-title">继续上次</view>
+      <view class="resume-meta">{{lastProgressText}}</view>
+    </view>
+    <button class="resume-btn">继续</button>
+  </view>
+
+  <view class="scope-panel panel">
+    <view class="scope-head">
+      <view class="scope-copy">
+        <view class="section-title">选择 Unit</view>
+        <view class="scope-meta">当前教材内选择一个复习范围</view>
+      </view>
+      <button class="scope-link" bindtap="goBooks">词表</button>
+    </view>
+    <picker mode="selector" range="{{unitNames}}" value="{{unitIndex}}" bindchange="changeUnit">
+      <view class="unit-picker">{{activeUnitText}} <text class="chev">v</text></view>
+    </picker>
+  </view>
+
+  <view class="section-row">
+    <view class="section-title">练习模式</view>
+  </view>
+
+  <view class="mode-stack">
+    <block wx:for="{{modeCards}}" wx:key="id">
+      <view wx:if="{{item.primary}}" class="mode-primary panel" data-mode="{{item.id}}" bindtap="startMode">
+        <view class="mode-left">
+          <view class="mode-icon {{item.icon}}"></view>
+          <view class="mode-copy">
+            <view class="mode-title">{{item.title}}</view>
+            <view class="mode-desc">{{item.desc}}</view>
+          </view>
+        </view>
+        <view class="mode-action">开始</view>
+      </view>
+    </block>
+
+    <view class="mode-grid">
+      <block wx:for="{{modeCards}}" wx:key="id">
+        <view wx:if="{{!item.primary}}" class="mode-card panel" data-mode="{{item.id}}" bindtap="startMode">
+          <view class="mode-icon {{item.icon}}"></view>
+          <view class="mode-copy">
+            <view class="mode-title">{{item.title}}</view>
+            <view class="mode-desc">{{item.desc}}</view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+</view>
+<view class="module-tabbar"><navigator class="module-tab active" url="/words/pages/index/index" open-type="redirect"><image class="module-tab-icon" src="/words/assets/tab/study-active.png" mode="aspectFit" /><text>学习</text></navigator><navigator class="module-tab" url="/words/pages/books/books" open-type="redirect"><image class="module-tab-icon" src="/words/assets/tab/books.png" mode="aspectFit" /><text>词表</text></navigator><navigator class="module-tab" url="/words/pages/me/me" open-type="redirect"><image class="module-tab-icon" src="/words/assets/tab/me.png" mode="aspectFit" /><text>我的</text></navigator><navigator class="module-tab module-home" url="/pages/portal/portal" open-type="reLaunch"><view class="module-home-icon"><view></view></view><text>NaviStudy</text></navigator></view>

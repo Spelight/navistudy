@@ -1,0 +1,117 @@
+openapi: 3.1.0
+info:
+  title: Navi Passport API
+  version: 1.0.0
+servers:
+  - url: https://study.dxir.net.cn
+  - url: https://study.dxir.net.cn/words/navistudy-api
+  - url: https://study.dxir.net.cn/mt/navistudy-api
+  - url: https://words.dxir.net.cn/navistudy-api
+  - url: https://mt.dxir.net.cn/navistudy-api
+paths:
+  /api/v1/auth/register:
+    post:
+      operationId: register
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/AuthRequest' } } } }
+      responses: { '201': { $ref: '#/components/responses/Success' }, '400': { $ref: '#/components/responses/Error' }, '409': { $ref: '#/components/responses/Error' } }
+  /api/v1/auth/login:
+    post:
+      operationId: login
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/AuthRequest' } } } }
+      responses: { '200': { $ref: '#/components/responses/Success' }, '401': { $ref: '#/components/responses/Error' }, '429': { $ref: '#/components/responses/Error' } }
+  /api/v1/auth/refresh:
+    post:
+      operationId: refresh
+      responses: { '200': { $ref: '#/components/responses/Success' }, '401': { $ref: '#/components/responses/Error' } }
+  /api/v1/auth/recover:
+    post:
+      operationId: recover
+      responses: { '200': { $ref: '#/components/responses/Success' }, '401': { $ref: '#/components/responses/Error' } }
+  /api/v1/auth/logout:
+    post:
+      operationId: logout
+      security: [{ bearer: [] }, { cookie: [] }]
+      responses: { '200': { $ref: '#/components/responses/Success' } }
+  /api/v1/account:
+    get:
+      operationId: account
+      security: [{ bearer: [] }, { cookie: [] }]
+      responses: { '200': { $ref: '#/components/responses/Success' } }
+  /api/v1/account/password:
+    patch:
+      operationId: changePassword
+      security: [{ bearer: [] }, { cookie: [] }]
+      responses: { '200': { $ref: '#/components/responses/Success' } }
+  /api/v1/account/sessions:
+    get:
+      operationId: sessions
+      security: [{ bearer: [] }, { cookie: [] }]
+      responses: { '200': { $ref: '#/components/responses/Success' } }
+  /api/v1/account/sessions/{id}:
+    delete:
+      operationId: revokeSession
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{32}$' } }]
+      security: [{ bearer: [] }, { cookie: [] }]
+      responses: { '200': { $ref: '#/components/responses/Success' } }
+  /api/v1/account/deletion:
+    post:
+      operationId: requestDeletion
+      security: [{ bearer: [] }, { cookie: [] }]
+      responses: { '200': { $ref: '#/components/responses/Success' } }
+    delete:
+      operationId: cancelDeletion
+      security: [{ bearer: [] }, { cookie: [] }]
+      responses: { '200': { $ref: '#/components/responses/Success' } }
+  /oauth/authorize:
+    get:
+      operationId: authorize
+      parameters:
+        - { name: response_type, in: query, required: true, schema: { const: code } }
+        - { name: client_id, in: query, required: true, schema: { type: string } }
+        - { name: redirect_uri, in: query, required: true, schema: { type: string, format: uri } }
+        - { name: code_challenge, in: query, required: true, schema: { type: string } }
+        - { name: code_challenge_method, in: query, required: true, schema: { const: S256 } }
+        - { name: state, in: query, required: true, schema: { type: string } }
+      responses: { '302': { description: Single-use authorization code redirect } }
+  /oauth/token:
+    post:
+      operationId: exchangeCode
+      responses: { '200': { $ref: '#/components/responses/Success' }, '401': { $ref: '#/components/responses/Error' } }
+  /api/v1/sync/{product}:
+    parameters: [{ name: product, in: path, required: true, schema: { enum: [words, mt] } }]
+    get:
+      operationId: readSyncState
+      security: [{ bearer: [] }, { cookie: [] }]
+      responses: { '200': { $ref: '#/components/responses/Success' }, '403': { $ref: '#/components/responses/Error' } }
+    post:
+      operationId: applyMutations
+      security: [{ bearer: [] }, { cookie: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: './sync-request.schema.json' } } } }
+      responses: { '200': { $ref: '#/components/responses/Success' }, '409': { $ref: '#/components/responses/Error' }, '413': { $ref: '#/components/responses/Error' } }
+components:
+  securitySchemes:
+    bearer: { type: http, scheme: bearer }
+    cookie: { type: apiKey, in: cookie, name: navi_access }
+  schemas:
+    AuthRequest:
+      type: object
+      required: [username, password, deviceId, deviceName, clientId]
+      properties:
+        username: { type: string, minLength: 3, maxLength: 40 }
+        password: { type: string, minLength: 6, maxLength: 128 }
+        deviceId: { type: string, minLength: 3, maxLength: 128 }
+        deviceName: { type: string, maxLength: 80 }
+        clientId: { enum: [study-web, words-web, mt-web, navistudy-wechat, words-android] }
+        transport: { enum: [browser, native] }
+    Error:
+      type: object
+      required: [ok, error]
+      properties:
+        ok: { const: false }
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties: { code: { type: string }, message: { type: string }, requestId: { type: string } }
+  responses:
+    Success: { description: Successful response, content: { application/json: { schema: { type: object, required: [ok], properties: { ok: { const: true } } } } } }
+    Error: { description: Structured error, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }

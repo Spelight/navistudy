@@ -1,0 +1,22 @@
+{
+  "generatedAt": "example",
+  "title": "NaviMT Example Bank",
+  "notice": "Synthetic examples only. Replace with a separately licensed content package.",
+  "chapters": ["National defence", "Security"],
+  "stats": {
+    "total": 2,
+    "byType": {"single": 1, "multiple": 1, "truefalse": 0, "short": 0},
+    "byChapter": {"National defence": 1, "Security": 1},
+    "modern": 2,
+    "legacy": 0,
+    "conflicts": 0,
+    "sources": 1
+  },
+  "sources": [
+    {"id": "example", "name": "Synthetic example", "period": "2026", "role": "example", "note": "Not from a course source.", "path": "examples/mt/question-bank.json", "sha256": ""}
+  ],
+  "questions": [
+    {"id": "example-single-001", "chapter": "National defence", "type": "single", "stem": "Which label best describes this synthetic practice question?", "options": [{"key": "A", "text": "An example"}, {"key": "B", "text": "A credential"}, {"key": "C", "text": "A user record"}], "answer": ["A"], "source": "Synthetic example", "sources": ["Synthetic example"], "modern": true, "disabled": false},
+    {"id": "example-multiple-001", "chapter": "Security", "type": "multiple", "stem": "Which items are safe public-repository boundaries?", "options": [{"key": "A", "text": "Application source"}, {"key": "B", "text": "Private recovery codes"}, {"key": "C", "text": "Synthetic fixtures"}], "answer": ["A", "C"], "source": "Synthetic example", "sources": ["Synthetic example"], "modern": true, "disabled": false}
+  ]
+}

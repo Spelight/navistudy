@@ -1,0 +1,35 @@
+<view class="page wrong-page">
+  <view class="top-title">错题本</view>
+  <view class="wrong-sub">答对后会自动移出，仍可在题库查看历史状态。</view>
+
+  <view class="stats panel">
+    <view class="stat-item"><text class="stat-num">{{total}}</text><text class="stat-label">待复习题</text></view>
+    <view class="stat-item"><text class="stat-num">{{totalAttempts}}</text><text class="stat-label">累计错次</text></view>
+  </view>
+
+  <scroll-view class="filter-scroll" scroll-x enhanced show-scrollbar="false">
+    <view class="filter-row">
+      <button wx:for="{{chapters}}" wx:key="id" class="filter-chip {{activeChapter===item.id?'active':''}}" data-chapter="{{item.id}}" bindtap="selectChapter">{{item.title}}</button>
+    </view>
+  </scroll-view>
+
+  <view class="action-row">
+    <button class="primary-btn" bindtap="startPractice">开始错题练习</button>
+    <button class="danger-btn" bindtap="clearCurrent">清空当前</button>
+  </view>
+
+  <view wx:if="{{!rows.length}}" class="empty panel">
+    <view class="empty-title">当前没有错题</view>
+    <view class="empty-text">练习中答错的题目会自动出现在这里。</view>
+  </view>
+
+  <view wx:for="{{rows}}" wx:key="id" class="wrong-card panel">
+    <view class="wrong-main" data-id="{{item.id}}" bindtap="openQuestion">
+      <view class="wrong-meta"><text>{{item.typeText}}</text><text>{{item.chapter}}</text></view>
+      <view class="wrong-stem">{{item.stem}}</view>
+      <view class="wrong-foot">错 {{item.attempts}} 次 · {{item.timeText}}</view>
+    </view>
+    <button class="remove-btn" data-id="{{item.id}}" catchtap="removeOne">移出</button>
+  </view>
+</view>
+

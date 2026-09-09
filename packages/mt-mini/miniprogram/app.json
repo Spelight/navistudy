@@ -1,0 +1,44 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/bank/bank",
+    "pages/me/me",
+    "pages/practice/practice",
+    "pages/wrong/wrong"
+  ],
+  "window": {
+    "navigationBarTitleText": "NaviMT 军理通",
+    "navigationBarBackgroundColor": "#050608",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#050608"
+  },
+  "lazyCodeLoading": "requiredComponents",
+  "tabBar": {
+    "color": "#7a8499",
+    "selectedColor": "#2c7be5",
+    "backgroundColor": "#1b1c1f",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "练习",
+        "iconPath": "assets/tab/study.png",
+        "selectedIconPath": "assets/tab/study-active.png"
+      },
+      {
+        "pagePath": "pages/bank/bank",
+        "text": "题库",
+        "iconPath": "assets/tab/books.png",
+        "selectedIconPath": "assets/tab/books-active.png"
+      },
+      {
+        "pagePath": "pages/me/me",
+        "text": "我的",
+        "iconPath": "assets/tab/me.png",
+        "selectedIconPath": "assets/tab/me-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

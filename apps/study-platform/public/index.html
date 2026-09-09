@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f5f3ed">
+  <meta name="description" content="NaviStudy 学习入口与 Navi Passport 账号中心">
+  <title>NaviStudy</title>
+  <link rel="stylesheet" href="/app.css">
+  <script src="/assets/lucide.min.js" defer></script>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <!--
+  THESIS: NaviStudy is a continuation desk, not a product brochure; the next useful study action owns the first viewport.
+  OWN-WORLD: paper-white workspace, ink typography, cobalt navigation, mint Words and saffron MT bands, square-cut utility controls.
+  STORY: see account state, resume real work, enter one of three products, then manage security without leaving the desk.
+  FIRST VIEWPORT: compact masthead above a 7/5 dashboard; continuation and product bands lead on the left, Passport status anchors the right.
+  FORM: academic field notebook, first choice; seed key field-notebook-27.
+  FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+  -->
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <header class="masthead">
+    <a class="brand" href="/" aria-label="NaviStudy 首页">
+      <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+      <span>NaviStudy</span>
+    </a>
+    <div class="mast-actions">
+      <span class="network-state" id="networkState"><i data-lucide="cloud"></i><span>仅本机</span></span>
+      <button class="icon-button" id="themeToggle" type="button" aria-label="切换深浅模式" title="切换深浅模式"><i data-lucide="moon"></i></button>
+      <button class="account-button" id="accountJump" type="button"><i data-lucide="circle-user-round"></i><span id="accountLabel">登录</span></button>
+    </div>
+  </header>
+
+  <main id="main" class="workspace">
+    <section class="study-desk" aria-labelledby="deskTitle">
+      <header class="section-heading">
+        <h1 id="deskTitle">今天从哪里继续？</h1>
+        <p id="deskSubtitle">游客模式可直接学习，登录后自动带回跨设备进度。</p>
+      </header>
+
+      <a class="resume-band is-empty" id="resumeLink" href="/words/">
+        <span class="resume-icon"><i data-lucide="play"></i></span>
+        <span class="resume-copy">
+          <small>继续学习</small>
+          <strong id="resumeTitle">还没有云端学习断点</strong>
+          <span id="resumeMeta">先进入任一产品，学习记录会保存在本机。</span>
+        </span>
+        <i class="resume-arrow" data-lucide="arrow-up-right"></i>
+      </a>
+
+      <div class="product-list" aria-label="学习产品">
+        <a class="product-row words" href="/words/">
+          <span class="product-code">NW</span>
+          <span class="product-copy"><strong>NaviWords</strong><span>英语专业词汇与复习</span></span>
+          <span class="product-action">进入学习<i data-lucide="arrow-right"></i></span>
+        </a>
+        <a class="product-row mt" href="/mt/">
+          <img class="product-mark" src="/assets/navimt-mark.svg" alt="NaviMT 标志">
+          <span class="product-copy"><strong>NaviMT 军理通</strong><span>军事理论题库与错题复习</span></span>
+          <span class="product-action">进入学习<i data-lucide="arrow-right"></i></span>
+        </a>
+        <a class="product-row oj" href="https://python.dxir.net.cn/">
+          <span class="product-code">OJ</span>
+          <span class="product-copy"><strong>NaviOJ</strong><span>Python 编程练习平台</span></span>
+          <span class="product-badge">独立账号</span>
+          <span class="product-action">打开<i data-lucide="external-link"></i></span>
+        </a>
+      </div>
+    </section>
+
+    <aside class="passport-panel" id="passportPanel" aria-labelledby="passportTitle">
+      <div class="passport-head">
+        <span class="passport-symbol"><i data-lucide="key-round"></i></span>
+        <div><h2 id="passportTitle">Navi Passport</h2><p id="passportIntro">登录后在 Words 与 MT 之间共用身份。</p></div>
+      </div>
+
+      <div id="guestView">
+        <div class="auth-tabs" role="tablist" aria-label="账号操作">
+          <button class="auth-tab is-active" type="button" role="tab" aria-selected="true" data-auth-tab="login">登录</button>
+          <button class="auth-tab" type="button" role="tab" aria-selected="false" data-auth-tab="register">注册</button>
+          <button class="auth-tab" type="button" role="tab" aria-selected="false" data-auth-tab="recover">恢复</button>
+        </div>
+        <form class="auth-form" id="authForm" novalidate>
+          <label>用户名<input id="username" name="username" autocomplete="username" maxlength="40" required></label>
+          <label id="passwordLabel">密码<input id="password" name="password" type="password" autocomplete="current-password" minlength="6" maxlength="128" required></label>
+          <label id="recoveryField" hidden>恢复码<input id="recoveryCode" name="recoveryCode" autocomplete="off"></label>
+          <p class="field-hint" id="authHint">在这台浏览器登录，不会影响游客模式中的本机记录。</p>
+          <div class="form-error" id="authError" role="alert" hidden></div>
+          <button class="primary-button" id="authSubmit" type="submit"><span>登录</span><i data-lucide="arrow-right"></i></button>
+        </form>
+      </div>
+
+      <div id="accountView" hidden>
+        <div class="account-summary">
+          <span class="account-avatar" id="accountAvatar">N</span>
+          <div><strong id="accountName"></strong><span id="accountStatus">Words 与 MT 正在同步</span></div>
+          <button class="icon-button" id="logoutButton" type="button" aria-label="退出登录" title="退出登录"><i data-lucide="log-out"></i></button>
+        </div>
+        <div class="account-actions">
+          <button type="button" data-account-action="sync"><i data-lucide="refresh-cw"></i><span>立即同步</span></button>
+          <button type="button" data-account-action="devices"><i data-lucide="monitor-smartphone"></i><span>设备管理</span></button>
+          <button type="button" data-account-action="password"><i data-lucide="lock-keyhole"></i><span>修改密码</span></button>
+        </div>
+        <section class="account-detail" id="accountDetail" hidden></section>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="site-footer">
+    <span>NaviStudy · 学习数据由你掌握</span>
+    <span>Words 与 MT 共用通行证，NaviOJ 保持独立</span>
+  </footer>
+
+  <dialog id="recoveryDialog">
+    <form method="dialog" class="dialog-content">
+      <span class="dialog-icon"><i data-lucide="shield-check"></i></span>
+      <h2>保存你的恢复码</h2>
+      <p>它只显示这一次。忘记密码时，恢复码是唯一的找回方式。</p>
+      <output id="newRecoveryCode"></output>
+      <button class="copy-button" id="copyRecovery" type="button"><i data-lucide="copy"></i><span>复制恢复码</span></button>
+      <label class="confirm-check"><input id="recoveryConfirmed" type="checkbox">我已妥善保存</label>
+      <button class="primary-button" id="closeRecovery" value="done" disabled>进入 NaviStudy</button>
+    </form>
+  </dialog>
+</body>
+</html>

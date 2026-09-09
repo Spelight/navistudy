@@ -1,0 +1,53 @@
+<view class="page me-page">
+  <view class="appbar"><view class="nav-title">我的</view></view>
+
+  <view class="profile panel">
+    <view class="profile-row">
+      <view class="avatar">MT</view>
+      <view class="profile-copy">
+        <view class="profile-title">{{displayUser}}</view>
+        <view class="profile-sub">{{passportSummary}}</view>
+      </view>
+    </view>
+    <button class="passport-entry" bindtap="goPassport"><text>{{passportAction}}</text><text>{{syncStatus}}</text><view class="tool-arrow"></view></button>
+    <view class="accuracy-row">
+      <view><text class="accuracy-num">{{accuracy}}%</text><text class="accuracy-label">累计正确率</text></view>
+      <view class="accuracy-meta">已作答 {{answered}} / {{total}}</view>
+    </view>
+    <view class="shortcut-list">
+      <view class="shortcut" bindtap="goWrong">
+        <view class="shortcut-mark wrong"></view>
+        <view class="shortcut-copy"><text class="shortcut-title">错题本</text><text class="shortcut-desc">集中处理仍未答对的题</text></view>
+        <text class="shortcut-num">{{wrong}}</text>
+      </view>
+      <view class="shortcut" bindtap="goFavorites">
+        <view class="shortcut-mark favorite"></view>
+        <view class="shortcut-copy"><text class="shortcut-title">收藏题目</text><text class="shortcut-desc">复习手动标记的重点</text></view>
+        <text class="shortcut-num">{{favorites}}</text>
+      </view>
+      <view class="shortcut" bindtap="goBank">
+        <view class="shortcut-mark mastered"></view>
+        <view class="shortcut-copy"><text class="shortcut-title">已掌握</text><text class="shortcut-desc">查看完整题库与状态</text></view>
+        <text class="shortcut-num">{{mastered}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="tool-list panel">
+    <view class="tool-row" bindtap="copyWeb"><view class="tool-mark web"></view><view class="tool-copy"><text class="tool-title">PC 网页版</text><text class="tool-desc">复制 study.dxir.net.cn/mt/ 链接</text></view><view class="tool-arrow"></view></view>
+    <view class="tool-row" bindtap="exportData"><view class="tool-mark export"></view><view class="tool-copy"><text class="tool-title">导出学习数据</text><text class="tool-desc">复制作答、错题、收藏和进度</text></view><view class="tool-arrow"></view></view>
+    <view class="tool-row" bindtap="importData"><view class="tool-mark import"></view><view class="tool-copy"><text class="tool-title">导入学习数据</text><text class="tool-desc">从剪贴板恢复本机记录</text></view><view class="tool-arrow"></view></view>
+    <view class="tool-row" bindtap="shareApp"><view class="tool-mark share"></view><view class="tool-copy"><text class="tool-title">分享给同学</text><text class="tool-desc">打开微信分享入口</text></view><view class="tool-arrow"></view></view>
+    <view class="tool-row" bindtap="reopenNotice"><view class="tool-mark notice"></view><view class="tool-copy"><text class="tool-title">恢复首页提示</text><text class="tool-desc">重新显示资料时效说明</text></view><view class="tool-arrow"></view></view>
+    <view class="tool-row danger" bindtap="clearLocal"><view class="tool-mark clear"></view><view class="tool-copy"><text class="tool-title">清空本地数据</text><text class="tool-desc">不影响内置题库内容</text></view><view class="tool-arrow"></view></view>
+  </view>
+
+  <view class="about panel">
+    <view class="about-row"><text>题库规模</text><text class="muted">{{total}} 题 · {{sourceCount}} 份资料</text></view>
+    <view class="about-row"><text>历史题目</text><text class="muted">{{legacyCount}} 题</text></view>
+    <view class="about-row"><text>版本</text><text class="muted">{{version}}</text></view>
+    <view class="about-row"><text>作者</text><text class="muted">Dxir</text></view>
+  </view>
+
+  <view class="disclaimer">题库由本地资料整理。旧题、法规、编制及时事内容可能变化，请以当前课程材料与教师要求为准。</view>
+</view>

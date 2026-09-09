@@ -1,0 +1,108 @@
+<view class="page me-page">
+  <view class="appbar">
+    <view class="nav-title">我的</view>
+  </view>
+
+  <view class="account panel">
+    <view class="profile-row">
+      <view class="avatar">NW</view>
+      <view class="profile-main">
+        <view class="name">{{displayUser}}</view>
+        <view class="sync">{{passportSummary}}</view>
+      </view>
+    </view>
+    <button class="passport-entry" bindtap="goPassport"><text>{{passportAction}}</text><text>{{syncStatus}}</text><text class="tool-arrow">></text></button>
+    <view class="shortcut-list">
+      <view class="shortcut" bindtap="goWrong">
+        <view class="shortcut-icon wrong-icon"></view>
+        <view class="shortcut-copy">
+          <text class="shortcut-label">错题</text>
+          <text class="shortcut-desc">集中复习薄弱词</text>
+        </view>
+        <text class="shortcut-num">{{wrongCount}}</text>
+      </view>
+      <view class="shortcut" bindtap="goBooks">
+        <view class="shortcut-icon book-icon"></view>
+        <view class="shortcut-copy">
+          <text class="shortcut-label">词表</text>
+          <text class="shortcut-desc">查看教材掌握情况</text>
+        </view>
+        <text class="shortcut-num">{{masteredCount}}</text>
+      </view>
+      <view class="shortcut" bindtap="goBooks">
+        <view class="shortcut-icon star-icon"></view>
+        <view class="shortcut-copy">
+          <text class="shortcut-label">收藏</text>
+          <text class="shortcut-desc">复习重点标记词</text>
+        </view>
+        <text class="shortcut-num">{{favCount}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="tool-list panel">
+    <view class="tool-row" bindtap="copyWeb">
+      <view class="tool-icon web-icon"></view>
+      <view class="tool-copy">
+        <text class="tool-title">PC 网页版</text>
+        <text class="tool-desc">复制 study.dxir.net.cn/words/ 链接</text>
+      </view>
+      <text class="tool-arrow">></text>
+    </view>
+    <view class="tool-row" bindtap="exportData">
+      <view class="tool-icon export-icon"></view>
+      <view class="tool-copy">
+        <text class="tool-title">导出学习数据</text>
+        <text class="tool-desc">复制收藏、错题和进度 JSON</text>
+      </view>
+      <text class="tool-arrow">></text>
+    </view>
+    <view class="tool-row" bindtap="importData">
+      <view class="tool-icon import-icon"></view>
+      <view class="tool-copy">
+        <text class="tool-title">导入学习数据</text>
+        <text class="tool-desc">从剪贴板恢复学习数据</text>
+      </view>
+      <text class="tool-arrow">></text>
+    </view>
+    <view class="tool-row" bindtap="shareApp">
+      <view class="tool-icon share-icon"></view>
+      <view class="tool-copy">
+        <text class="tool-title">分享给同学</text>
+        <text class="tool-desc">打开微信分享入口</text>
+      </view>
+      <text class="tool-arrow">></text>
+    </view>
+    <view class="tool-row" bindtap="reopenNotice">
+      <view class="tool-icon notice-icon"></view>
+      <view class="tool-copy">
+        <text class="tool-title">重新显示公告</text>
+        <text class="tool-desc">恢复首页内测下载提示</text>
+      </view>
+      <text class="tool-arrow">></text>
+    </view>
+    <view class="tool-row danger" bindtap="clearLocal">
+      <view class="tool-icon clear-icon"></view>
+      <view class="tool-copy">
+        <text class="tool-title">清空本地数据</text>
+        <text class="tool-desc">只清空本机，不影响远端</text>
+      </view>
+      <text class="tool-arrow">></text>
+    </view>
+  </view>
+
+  <view class="about panel">
+    <view class="about-row">
+      <text>版本</text>
+      <text class="muted">{{version}}</text>
+    </view>
+    <view class="about-row">
+      <text>网页</text>
+      <text class="muted">words.dxir.net.cn</text>
+    </view>
+    <view class="about-row">
+      <text>作者</text>
+      <text class="muted">Dxir</text>
+    </view>
+  </view>
+</view>

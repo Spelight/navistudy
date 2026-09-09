@@ -1,0 +1,67 @@
+<view class="page practice">
+  <view class="practice-head">
+    <view class="head-copy">
+      <view class="scope">{{scopeLabel}}</view>
+      <view class="top-title">{{typeLabel}}</view>
+    </view>
+    <button class="progress" bindtap="togglePalette">{{index + 1}} / {{list.length}}</button>
+  </view>
+  <view class="progress-line"><view class="progress-fill" style="width: {{progressPercent}}%;"></view></view>
+
+  <view wx:if="{{paletteOpen}}" class="palette-panel panel">
+    <view class="palette-head">
+      <view>
+        <view class="palette-title">题目导航</view>
+        <view class="palette-note">蓝框为当前题，绿色已答对，红色待复习</view>
+      </view>
+      <button class="palette-close" bindtap="togglePalette" aria-label="关闭题目导航"><view class="close-mark"></view></button>
+    </view>
+    <view class="palette-grid">
+      <button wx:for="{{palette}}" wx:key="id" class="palette-item {{item.statusClass}}" data-index="{{item.index}}" bindtap="jumpQuestion">{{item.number}}</button>
+    </view>
+  </view>
+
+  <view wx:if="{{!list.length}}" class="empty panel">当前范围没有可练习题目，请返回更换章节或题型。</view>
+
+  <view wx:if="{{list.length}}" class="utility-row">
+    <button class="tool-btn" bindtap="prevQuestion" disabled="{{isFirst}}"><view class="back-icon"></view><text>上一题</text></button>
+    <button class="tool-btn {{favorite?'active':''}}" bindtap="toggleFavorite"><view class="favorite-icon"></view><text>{{favorite ? '已收藏' : '收藏'}}</text></button>
+  </view>
+
+  <view wx:if="{{list.length}}" class="question-panel panel">
+    <view class="question-meta">
+      <text class="type-badge">{{typeLabel}}</text>
+      <text class="number-badge">原题 #{{current.number}}</text>
+    </view>
+    <view class="question-stem">{{current.stem}}</view>
+
+    <view wx:if="{{!isShort}}" class="option-list">
+      <button wx:for="{{currentOptions}}" wx:key="key" class="option {{item.stateClass}}" data-key="{{item.key}}" bindtap="chooseOption">
+        <text class="option-key">{{item.key}}</text>
+        <text class="option-text">{{item.text}}</text>
+      </button>
+    </view>
+
+    <button wx:if="{{isMultiple && !answered}}" class="primary-btn submit-btn" bindtap="submitAnswer" disabled="{{!selected.length}}">提交多选答案</button>
+    <button wx:if="{{isShort && !answered}}" class="primary-btn reveal-btn" bindtap="revealShort">显示参考答案</button>
+
+    <view wx:if="{{answered}}" class="answer-panel {{isShort?'short-answer':''}} {{correct?'ok':''}}">
+      <view class="answer-state">{{isShort ? '参考答案' : (correct ? '回答正确' : '回答错误')}}</view>
+      <view wx:if="{{!correct || isShort}}" class="answer-text">{{answerText}}</view>
+      <view wx:if="{{hasExplanation}}" class="explanation">{{current.explanation}}</view>
+    </view>
+
+    <view class="source-block">
+      <view class="source-label">资料来源</view>
+      <view class="source-name">{{current.source}}</view>
+      <view class="source-age {{current.legacy?'legacy':''}}">{{legacyText}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{list.length && answered && isShort}}" class="assessment-actions">
+    <button class="assessment-btn retry" data-result="retry" bindtap="assessShort">还需复习</button>
+    <button class="assessment-btn known" data-result="known" bindtap="assessShort">已经掌握</button>
+  </view>
+
+  <button wx:if="{{list.length && answered && !isShort}}" class="primary-btn next-btn" bindtap="nextQuestion">{{isLast ? '完成本轮' : '下一题'}}</button>
+</view>

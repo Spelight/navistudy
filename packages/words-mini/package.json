@@ -1,0 +1,9 @@
+{
+  "name": "navistudy-words-mini-module",
+  "version": "0.1.0",
+  "private": false,
+  "description": "NaviWords WeChat mini-program module with public fixture data",
+  "scripts": {
+    "test": "node tests/practice-progress.test.js"
+  }
+}

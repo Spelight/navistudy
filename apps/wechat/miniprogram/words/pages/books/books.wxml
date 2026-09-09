@@ -1,0 +1,95 @@
+<view class="page outline">
+  <view class="appbar">
+    <picker mode="selector" range="{{bookNames}}" value="{{bookIndex}}" bindchange="changeBook">
+      <view class="book-pill"><text class="book-pill-label">{{activeBookTitle}}</text><text class="chev">v</text></view>
+    </picker>
+    <view class="nav-title">词表</view>
+    <button class="start-mini" bindtap="startCurrent">开始</button>
+  </view>
+
+  <view class="unit-head">
+    <view class="unit-head-copy">
+      <view class="unit-title">{{activeUnitTitle}}</view>
+      <view class="unit-meta">已掌握 {{progressMastered}} / {{progressTotal}}</view>
+    </view>
+    <view class="unit-count">{{progressTotal}} 词</view>
+  </view>
+  <view class="progress-line">
+    <view class="progress-fill" style="width: {{progressPercent}}%;"></view>
+  </view>
+
+  <scroll-view class="unit-tabs" scroll-x>
+    <view wx:for="{{units}}" wx:key="unit" class="unit-tab {{activeUnit==item.unit?'active':''}}" data-unit="{{item.unit}}" bindtap="selectUnit">{{item.label}}</view>
+  </scroll-view>
+
+  <view class="view-switch">
+    <button wx:for="{{viewModes}}" wx:key="key" class="view-chip {{activeView==item.key?'active':''}}" data-view="{{item.key}}" bindtap="changeView">{{item.label}}</button>
+  </view>
+
+  <view wx:if="{{showUnitView && !hasQuery}}" class="unit-mastery panel">
+    <view class="panel-head">
+      <view>
+        <view class="panel-title">Unit 掌握情况</view>
+        <view class="panel-sub">先看薄弱单元，再决定从哪里开始</view>
+      </view>
+    </view>
+    <view wx:for="{{unitRows}}" wx:key="unit" class="unit-row {{item.active?'active':''}}" data-unit="{{item.unit}}" bindtap="selectUnit">
+      <view class="unit-row-top">
+        <view class="unit-row-copy">
+          <view class="unit-row-name">{{item.label}}</view>
+          <view class="unit-row-meta">掌握 {{item.mastered}} / {{item.total}} · 错题 {{item.wrong}}</view>
+        </view>
+        <button class="unit-start" data-unit="{{item.unit}}" catchtap="startUnit">开始</button>
+      </view>
+      <view class="heat-track">
+        <view class="heat-done" style="width: {{item.masteredWidth}};"></view>
+        <view class="heat-wrong" style="width: {{item.wrongWidth}};"></view>
+        <view class="heat-fav" style="width: {{item.favWidth}};"></view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{showOverviewView && !hasQuery}}" class="overview-grid">
+    <view wx:for="{{overviewStats}}" wx:key="key" class="overview-card panel {{item.className}}">
+      <view class="overview-mark"></view>
+      <view class="overview-label">{{item.label}}</view>
+      <view class="overview-value">{{item.value}}</view>
+      <view class="overview-note">{{item.note}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{showMapView && !hasQuery}}" class="dot-panel panel">
+    <view class="panel-head">
+      <view>
+        <view class="panel-title">词图</view>
+        <view class="panel-sub">适合快速跳到某个位置继续背</view>
+      </view>
+    </view>
+    <view class="dot-grid">
+      <view wx:for="{{words}}" wx:key="key" class="word-dot {{item.statusClass}}" data-index="{{item.wordIndex}}" bindtap="startFromWord">{{item.number}}</view>
+    </view>
+  </view>
+
+  <input class="input search" placeholder="搜索单词、中文释义或英文释义" value="{{query}}" bindinput="onSearch" />
+
+  <view class="toolbar" wx:if="{{showListView || hasQuery}}">
+    <text class="muted">{{visibleWords.length}} 个词条</text>
+    <text class="muted">绿=掌握 红=错题 金=收藏</text>
+  </view>
+
+  <block wx:if="{{showListView || hasQuery}}">
+    <view wx:if="{{!visibleWords.length}}" class="empty panel">没有匹配词汇</view>
+    <view wx:for="{{visibleWords}}" wx:key="key" class="word-row panel" data-index="{{item.wordIndex}}" bindtap="startFromWord">
+      <view class="word-main">
+        <view class="word-line">
+          <view class="word">{{item.w}}</view>
+          <view class="state {{item.statusClass}}">{{item.statusText}}</view>
+        </view>
+        <view class="phonetic">{{item.p}}</view>
+        <view class="en">{{item.e}}</view>
+      </view>
+      <view class="cn">{{item.c}}</view>
+    </view>
+  </block>
+</view>
+<view class="module-tabbar"><navigator class="module-tab" url="/words/pages/index/index" open-type="redirect"><image class="module-tab-icon" src="/words/assets/tab/study.png" mode="aspectFit" /><text>学习</text></navigator><navigator class="module-tab active" url="/words/pages/books/books" open-type="redirect"><image class="module-tab-icon" src="/words/assets/tab/books-active.png" mode="aspectFit" /><text>词表</text></navigator><navigator class="module-tab" url="/words/pages/me/me" open-type="redirect"><image class="module-tab-icon" src="/words/assets/tab/me.png" mode="aspectFit" /><text>我的</text></navigator><navigator class="module-tab module-home" url="/pages/portal/portal" open-type="reLaunch"><view class="module-home-icon"><view></view></view><text>NaviStudy</text></navigator></view>

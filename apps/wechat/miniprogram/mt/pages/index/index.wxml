@@ -1,0 +1,91 @@
+<view class="page home">
+  <view class="appbar">
+    <view class="brand-mark">MT</view>
+    <view class="nav-title">练习</view>
+    <button class="bank-link" bindtap="goBank">题库</button>
+  </view>
+
+  <view wx:if="{{!noticeHidden}}" class="notice panel">
+    <view class="notice-signal">!</view>
+    <view class="notice-text">旧题仅供练习；法规、编制与时事表述请以当前课程资料和教师要求为准。</view>
+    <button class="notice-close" bindtap="dismissNotice" aria-label="关闭提示"><view class="close-mark"></view></button>
+  </view>
+
+  <view class="overview-head">
+    <view>
+      <view class="chapter-name">{{activeChapterText}}</view>
+      <view class="chapter-progress">已作答 {{stats.answered}} / {{stats.total}}</view>
+    </view>
+    <view class="percent">{{progressPercent}}%</view>
+  </view>
+  <view class="progress-line"><view class="progress-fill" style="width: {{progressPercent}}%;"></view></view>
+
+  <view class="metric-grid">
+    <button class="metric panel" bindtap="continuePractice">
+      <view class="metric-mark answered"></view>
+      <text class="metric-label">已作答</text>
+      <text class="metric-num">{{stats.answered}}</text>
+      <text class="metric-sub">继续推进</text>
+    </button>
+    <button class="metric panel" bindtap="continuePractice">
+      <view class="metric-mark remaining"></view>
+      <text class="metric-label">待练习</text>
+      <text class="metric-num">{{remaining}}</text>
+      <text class="metric-sub">当前范围</text>
+    </button>
+    <button class="metric panel" bindtap="goWrong">
+      <view class="metric-mark wrong"></view>
+      <text class="metric-label">错题</text>
+      <text class="metric-num">{{stats.wrong}}</text>
+      <text class="metric-sub">待攻克</text>
+    </button>
+    <button class="metric panel" bindtap="goBank">
+      <view class="metric-mark favorite"></view>
+      <text class="metric-label">收藏</text>
+      <text class="metric-num">{{stats.favorites}}</text>
+      <text class="metric-sub">重点题目</text>
+    </button>
+  </view>
+
+  <view wx:if="{{lastProgressText}}" class="resume panel" bindtap="continuePractice">
+    <view class="resume-copy">
+      <view class="resume-title">继续上次</view>
+      <view class="resume-meta">{{lastProgressText}}</view>
+    </view>
+    <button class="resume-btn">继续</button>
+  </view>
+
+  <view class="scope-panel panel">
+    <view>
+      <view class="section-title">练习范围</view>
+      <view class="scope-meta">选择一个章节，所有入口同步生效</view>
+    </view>
+    <picker mode="selector" range="{{chapterNames}}" value="{{chapterIndex}}" bindchange="changeChapter">
+      <view class="chapter-picker">{{activeChapterText}} <text class="chev">v</text></view>
+    </picker>
+  </view>
+
+  <view class="section-row"><view class="section-title">练习方式</view></view>
+  <view class="mode-stack">
+    <block wx:for="{{modeCards}}" wx:key="id">
+      <view wx:if="{{item.primary}}" class="mode-primary panel" data-mode="{{item.id}}" bindtap="startMode">
+        <view class="mode-mark {{item.className}}"></view>
+        <view class="mode-copy">
+          <view class="mode-title">{{item.title}}</view>
+          <view class="mode-desc">{{item.desc}}</view>
+        </view>
+        <view class="mode-action">开始</view>
+      </view>
+    </block>
+    <view class="mode-grid">
+      <block wx:for="{{modeCards}}" wx:key="id">
+        <view wx:if="{{!item.primary}}" class="mode-card panel" data-mode="{{item.id}}" bindtap="startMode">
+          <view class="mode-mark {{item.className}}"></view>
+          <view class="mode-title">{{item.title}}</view>
+          <view class="mode-desc">{{item.desc}}</view>
+        </view>
+      </block>
+    </view>
+  </view>
+</view>
+<view class="module-tabbar"><navigator class="module-tab active" url="/mt/pages/index/index" open-type="redirect"><image class="module-tab-icon" src="/mt/assets/tab/study-active.png" mode="aspectFit" /><text>练习</text></navigator><navigator class="module-tab" url="/mt/pages/bank/bank" open-type="redirect"><image class="module-tab-icon" src="/mt/assets/tab/books.png" mode="aspectFit" /><text>题库</text></navigator><navigator class="module-tab" url="/mt/pages/me/me" open-type="redirect"><image class="module-tab-icon" src="/mt/assets/tab/me.png" mode="aspectFit" /><text>我的</text></navigator><navigator class="module-tab module-home" url="/pages/portal/portal" open-type="reLaunch"><view class="module-home-icon"><view></view></view><text>NaviStudy</text></navigator></view>

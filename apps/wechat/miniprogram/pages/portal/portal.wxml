@@ -1,0 +1,74 @@
+<view class="portal">
+  <view class="portal-head">
+    <view class="brand-lockup">
+      <view class="brand-mark"><view class="mark-line one"></view><view class="mark-line two"></view><view class="mark-line three"></view></view>
+      <view>
+        <view class="brand-name">NaviStudy</view>
+        <view class="brand-sub">选择要进入的学习空间</view>
+      </view>
+    </view>
+    <button class="passport-chip" bindtap="goPassport"><view class="passport-dot"></view><text>{{passportLabel}}</text><text class="passport-sync">{{syncLabel}}</text></button>
+  </view>
+
+  <view class="study-stack">
+    <button
+      wx:if="{{continuation.available}}"
+      class="study-row continue-row continue-{{continuation.moduleId}}"
+      bindtap="continueLearning"
+      hover-class="study-row-pressed"
+      hover-stay-time="80"
+      aria-label="继续上次学习"
+    >
+      <view class="continue-symbol"><view class="continue-hand"></view></view>
+      <view class="continue-copy">
+        <text class="continue-label">{{continuation.label}}</text>
+        <text class="continue-title">{{continuation.title}}</text>
+        <text class="continue-meta">{{continuation.meta}}</text>
+      </view>
+      <view class="row-action continue-action"><view class="row-arrow"></view></view>
+    </button>
+    <view wx:else class="study-row continue-row continue-empty" aria-label="还没有学习记录">
+      <view class="continue-symbol"><view class="continue-hand"></view></view>
+      <view class="continue-copy">
+        <text class="continue-label">{{continuation.label}}</text>
+        <text class="continue-title">{{continuation.title}}</text>
+        <text class="continue-meta">{{continuation.meta}}</text>
+      </view>
+      <view class="row-action continue-action"><view class="row-arrow"></view></view>
+    </view>
+
+    <view class="module-group">
+      <button
+        wx:for="{{modules}}"
+        wx:key="id"
+        class="study-row module-row module-{{item.id}}"
+        data-id="{{item.id}}"
+        bindtap="enterModule"
+        hover-class="study-row-pressed"
+        hover-stay-time="80"
+        aria-label="进入{{item.name}}，{{item.subject}}"
+      >
+        <view class="module-symbol">
+          <view wx:if="{{item.id==='words'}}" class="word-symbol">Aa</view>
+          <view wx:else class="mt-symbol"><view class="mt-bar"></view><view class="mt-bar short"></view><view class="mt-bar"></view></view>
+        </view>
+        <view class="module-copy">
+          <view class="module-topline"><text class="module-name">{{item.name}}</text><text class="module-metric">{{item.metric}}</text></view>
+          <view class="module-subject">{{item.subject}}<text class="module-separator"> · </text><text class="module-summary">{{item.summary}}</text></view>
+        </view>
+        <view class="row-action"><view class="row-arrow"></view></view>
+      </button>
+      <button class="study-row module-row module-oj" bindtap="openOj" hover-class="study-row-pressed" aria-label="打开 NaviOJ 独立账号说明">
+        <view class="module-symbol"><view class="word-symbol">OJ</view></view>
+        <view class="module-copy"><view class="module-topline"><text class="module-name">NaviOJ</text><text class="module-metric">独立账号</text></view><view class="module-subject">Python 编程<text class="module-separator"> · </text><text class="module-summary">练习与在线评测</text></view></view>
+        <view class="row-action"><view class="row-arrow"></view></view>
+      </button>
+    </view>
+  </view>
+
+  <view class="portal-foot">
+    <view class="status-dot"></view>
+    <text>Words 与 MT 数据独立保存</text>
+    <text class="version">v{{version}}</text>
+  </view>
+</view>

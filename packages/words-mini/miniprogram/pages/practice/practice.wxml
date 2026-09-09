@@ -1,0 +1,63 @@
+<view class="page practice">
+  <view class="practice-head">
+    <view class="head-copy">
+      <view class="scope">{{scopeLabel}}</view>
+      <view class="top-title">{{displayTitle}}</view>
+    </view>
+    <text class="progress">{{index + 1}} / {{words.length}}</text>
+  </view>
+
+  <view class="mode-tabs">
+    <view class="mode-tab {{mode==='card'?'active':''}}" data-mode="card" bindtap="switchMode">背诵</view>
+    <view class="mode-tab {{mode==='choice'?'active':''}}" data-mode="choice" bindtap="switchMode">选择</view>
+    <view class="mode-tab {{mode==='spell'?'active':''}}" data-mode="spell" bindtap="switchMode">拼写</view>
+  </view>
+
+  <view wx:if="{{!words.length}}" class="empty panel">当前范围没有词汇</view>
+
+  <view wx:if="{{words.length}}" class="utility-row">
+    <button class="tool-btn" bindtap="prevWord" disabled="{{isFirst}}">
+      <view class="back-icon"></view>
+      <text>上一词</text>
+    </button>
+    <button class="tool-btn {{favorite?'active':''}}" bindtap="toggleFav">
+      <view class="favorite-icon"></view>
+      <text>{{favorite ? '已收藏' : '收藏'}}</text>
+    </button>
+  </view>
+
+  <view wx:if="{{words.length && mode==='card'}}" class="card-panel panel">
+    <view class="card-face">
+      <view class="word {{wordSizeClass}}">{{current.w}}</view>
+      <view class="phonetic">{{current.p}}</view>
+      <button wx:if="{{!flipped}}" class="reveal-btn" bindtap="flipCard">显示答案</button>
+      <view wx:if="{{flipped}}" class="defs">
+        <view class="cn">{{current.c}}</view>
+        <view class="en">{{current.e}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{words.length && mode==='card' && flipped}}" class="assessment-actions">
+    <button class="assessment-btn retry" bindtap="forgetWord">还没记住</button>
+    <button class="assessment-btn known" bindtap="knowWord">记住了</button>
+  </view>
+
+  <view wx:if="{{words.length && mode==='choice'}}" class="quiz-panel panel">
+    <view class="quiz-q">{{current.w}}</view>
+    <view class="quiz-sub">{{scopeLabel}}</view>
+    <button wx:for="{{options}}" wx:key="key" class="option {{answered && item.key===current.key ? 'correct' : ''}} {{answered && selectedKey===item.key && item.key!==current.key ? 'wrong' : ''}}" data-key="{{item.key}}" bindtap="chooseOption">{{item.optionText}}</button>
+    <view wx:if="{{answered}}" class="answer">{{answerText}}</view>
+    <button wx:if="{{answered}}" class="primary-btn next-question" bindtap="nextQuestion">{{isLast ? '完成本轮' : '下一题'}}</button>
+  </view>
+
+  <view wx:if="{{words.length && mode==='spell'}}" class="quiz-panel panel">
+    <view class="quiz-sub">根据释义拼写单词</view>
+    <view class="spell-def">{{current.c}}</view>
+    <view class="spell-en">{{current.e}}</view>
+    <input class="input spell-input" placeholder="输入英文拼写" value="{{spellInput}}" bindinput="onSpellInput" confirm-type="done" bindconfirm="checkSpell" />
+    <button wx:if="{{!answered}}" class="primary-btn" bindtap="checkSpell">检查</button>
+    <view wx:if="{{answered}}" class="answer {{spellCorrect?'ok':'bad'}}">{{answerText}}</view>
+    <button wx:if="{{answered}}" class="primary-btn next-question" bindtap="nextQuestion">{{isLast ? '完成本轮' : '下一题'}}</button>
+  </view>
+</view>

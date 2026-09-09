@@ -1,0 +1,75 @@
+<view class="page wrong-page">
+  <view class="top-title">错题本</view>
+  <view class="wrong-sub">集中处理选择和拼写中真正做错的词。</view>
+
+  <view class="stats panel">
+    <view class="stat-item">
+      <text class="stat-num">{{totalCount}}</text>
+      <text class="stat-label">错题词</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-num">{{choiceCount}}</text>
+      <text class="stat-label">选择错次</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-num">{{spellCount}}</text>
+      <text class="stat-label">拼写错次</text>
+    </view>
+  </view>
+
+  <scroll-view class="filter-tabs" scroll-x>
+    <view wx:for="{{books}}" wx:key="id" class="filter-tab {{activeBook===item.id?'active':''}}" data-book="{{item.id}}" bindtap="selectBook">{{item.title}}</view>
+  </scroll-view>
+
+  <view class="type-tabs">
+    <view wx:for="{{typeTabs}}" wx:key="id" class="type-tab {{activeType===item.id?'active':''}}" data-type="{{item.id}}" bindtap="selectType">{{item.label}}</view>
+  </view>
+
+  <view class="practice-actions">
+    <button class="primary-btn" bindtap="practiceCard">背诵错题</button>
+    <button class="ghost-btn" bindtap="practiceChoice">选择练错</button>
+    <button class="ghost-btn" bindtap="practiceSpell">拼写练错</button>
+  </view>
+
+  <view class="list-head">
+    <text>{{wrongList.length}} 个匹配错题</text>
+    <view class="list-actions">
+      <text class="manage-link" bindtap="toggleBatch">{{batchMode ? '取消批量' : '批量管理'}}</text>
+      <text class="clear-link" bindtap="clearCurrent">清空筛选</text>
+    </view>
+  </view>
+
+  <view wx:if="{{batchMode && wrongList.length}}" class="batch-bar panel">
+    <view class="batch-select" bindtap="selectAll">
+      <view class="check {{allSelected?'checked':''}}"></view>
+      <text>{{allSelected ? '取消全选' : '全选'}}</text>
+    </view>
+    <button class="delete-selected {{selectedCount?'':'disabled'}}" bindtap="deleteSelected">删除已选 {{selectedCount}}</button>
+  </view>
+
+  <view wx:if="{{!wrongList.length}}" class="empty panel">
+    <view class="empty-title">当前没有错题</view>
+    <view class="empty-text">在教材练习的选择或拼写中答错后，会自动进入这里。</view>
+  </view>
+
+  <view wx:for="{{wrongList}}" wx:key="key" class="wrong-card panel">
+    <view class="wrong-body">
+      <view wx:if="{{batchMode}}" class="check-wrap" data-key="{{item.key}}" catchtap="toggleSelect">
+        <view class="check {{item.selected?'checked':''}}"></view>
+      </view>
+      <view class="wrong-main" data-key="{{item.key}}" bindtap="practiceOne">
+        <view class="wrong-top">
+          <view class="wrong-word">{{item.word}}</view>
+          <view class="wrong-unit">{{item.unitLabel}}</view>
+        </view>
+        <view class="wrong-ph">{{item.phonetic}}</view>
+        <view class="wrong-cn">{{item.cn}}</view>
+        <view class="wrong-en">{{item.en}}</view>
+      </view>
+    </view>
+    <view class="wrong-footer">
+      <view class="wrong-counts">选择错 {{item.choice}} · 拼写错 {{item.spell}} · {{item.lastWrongText}}</view>
+      <button wx:if="{{!batchMode}}" class="remove-btn" data-key="{{item.key}}" catchtap="removeOne">移出</button>
+    </view>
+  </view>
+</view>

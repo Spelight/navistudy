@@ -1,0 +1,44 @@
+<view class="page book-page {{themeClass}}">
+  <view class="book-hero panel">
+    <view>
+      <view class="book-name">{{bookInfo.title}}</view>
+      <view class="book-meta">{{bookInfo.unitCount}} 个单元 · {{bookInfo.wordCount}} 个词</view>
+    </view>
+    <view class="book-badge">教材</view>
+  </view>
+
+  <view wx:if="{{lastProgressText}}" class="resume panel" bindtap="continueBook">
+    <view>
+      <view class="resume-title">继续上次进度</view>
+      <view class="resume-meta">{{lastProgressText}}</view>
+    </view>
+    <view class="resume-action">继续</view>
+  </view>
+
+  <view class="block-title">选择单元</view>
+  <view class="unit-list">
+    <view wx:for="{{units}}" wx:key="unit" class="unit-card panel {{activeUnit==item.unit?'active':''}}" data-unit="{{item.unit}}" bindtap="selectUnit">
+      <view>
+        <view class="unit-title">{{item.label}}</view>
+        <view class="unit-desc">{{item.desc}}</view>
+      </view>
+      <view class="unit-count">{{item.count}} 词</view>
+    </view>
+  </view>
+
+  <view class="block-title">选择练习方式</view>
+  <view class="mode-list">
+    <view wx:for="{{modes}}" wx:key="id" class="mode-card {{activeMode===item.id?'active':''}}" data-mode="{{item.id}}" bindtap="selectMode">
+      <view class="mode-label">{{item.label}}</view>
+      <view class="mode-desc">{{item.desc}}</view>
+    </view>
+  </view>
+
+  <view class="start-bar panel">
+    <view>
+      <view class="start-count">{{selectedCount}} 个词</view>
+      <view class="start-meta">按当前单元和题型开始</view>
+    </view>
+    <button class="primary-btn start-btn" bindtap="startPractice">开始练习</button>
+  </view>
+</view>
