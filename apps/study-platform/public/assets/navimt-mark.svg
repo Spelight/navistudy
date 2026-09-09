@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="军理校场">
+  <circle cx="24" cy="24" r="21" fill="#fffefa" stroke="#1d2825" stroke-width="1.5"/>
+  <path d="M24 7v10M24 31v10M7 24h10M31 24h10" stroke="#1d2825" stroke-width="1.5"/>
+  <circle cx="24" cy="24" r="7" fill="none" stroke="#087d70" stroke-width="2"/>
+  <circle cx="24" cy="24" r="2.5" fill="#2869c8"/>
+  <path d="M12 12l4 4M36 12l-4 4M12 36l4-4M36 36l-4-4" stroke="#b84134" stroke-width="1.5"/>
+</svg>
