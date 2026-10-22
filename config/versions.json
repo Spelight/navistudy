@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "release": "4.0.2",
+  "channel": "stable",
+  "modules": {
+    "words": "0.3.0",
+    "mt": "0.1.2",
+    "reading": "0.1.1",
+    "plan": "0.2.1",
+    "tools": "0.1.0"
+  }
+}

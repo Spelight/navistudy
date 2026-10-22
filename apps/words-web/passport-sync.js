@@ -45,7 +45,7 @@
       }
     }
     const definitions = product === 'words'
-      ? { favs: 'list', custom_lists: 'list', wrongbook: 'map', mastered: 'map', progress_positions: 'map', srs_state: 'map' }
+      ? { favs: 'list', custom_lists: 'list', wrongbook: 'map', mastered: 'map', progress_positions: 'map', srs_state: 'map', app_settings: 'map' }
       : { favorites: 'list', answers: 'map', wrongbook: 'map', mastered: 'map', progressPositions: 'map' };
     const now = Date.now();
     for (const [collection, shape] of Object.entries(definitions)) {
@@ -99,7 +99,7 @@
     sessionStorage.setItem('navi_oauth_return', location.href);
     const challenge = await pkceChallenge(verifier);
     const query = new URLSearchParams({ response_type: 'code', client_id: clientId, redirect_uri: redirectUri, code_challenge: challenge, code_challenge_method: 'S256', state });
-    location.assign(`https://study.dxir.net.cn/oauth/authorize?${query}`);
+    location.assign(`https://study.example.test/oauth/authorize?${query}`);
   }
 
   async function finishLogin(clientId, redirectUri) {

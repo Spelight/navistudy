@@ -13,12 +13,17 @@ final class Database
 
     public function passport(): PDO
     {
-        return $this->open('passport', '001_initial.sql');
+        return $this->open('passport', ['001_initial.sql', '003_admin.sql']);
+    }
+
+    public function analytics(): PDO
+    {
+        return $this->open('analytics', '004_analytics.sql');
     }
 
     public function product(string $product): PDO
     {
-        if (!in_array($product, ['words', 'mt'], true)) {
+        if (!in_array($product, ['words', 'mt', 'reading', 'plan'], true)) {
             throw new ApiException('invalid_product', '不支持该学习产品。', 404);
         }
         return $this->open($product, '002_product.sql');
@@ -27,11 +32,14 @@ final class Database
     public function migrateAll(): void
     {
         $this->passport();
+        $this->analytics();
         $this->product('words');
         $this->product('mt');
+        $this->product('reading');
+        $this->product('plan');
     }
 
-    private function open(string $name, string $migration): PDO
+    private function open(string $name, string|array $migrations): PDO
     {
         if (isset($this->connections[$name])) return $this->connections[$name];
         $dir = $this->config->get('dataDir');
@@ -47,10 +55,11 @@ final class Database
         $pdo->exec('PRAGMA journal_mode = WAL');
         $pdo->exec('PRAGMA synchronous = NORMAL');
         $pdo->exec('PRAGMA busy_timeout = 5000');
-        $sql = file_get_contents($this->config->get('root') . '/migrations/' . $migration);
-        if ($sql === false) throw new \RuntimeException('Migration file missing.');
-        $pdo->exec($sql);
+        foreach ((array) $migrations as $migration) {
+            $sql = file_get_contents($this->config->get('root') . '/migrations/' . $migration);
+            if ($sql === false) throw new \RuntimeException('Migration file missing.');
+            $pdo->exec($sql);
+        }
         return $this->connections[$name] = $pdo;
     }
 }
-

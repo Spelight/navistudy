@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://study.dxir.net.cn/schema/sync-request-v1.json",
+  "$id": "https://study.example.test/schema/sync-request-v1.json",
   "type": "object",
   "required": ["deviceId", "baseRevision", "schemaVersion", "mutations"],
   "additionalProperties": false,

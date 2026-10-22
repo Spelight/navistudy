@@ -2,9 +2,23 @@
   <view class="book-hero panel">
     <view>
       <view class="book-name">{{bookInfo.title}}</view>
-      <view class="book-meta">{{bookInfo.unitCount}} 个单元 · {{bookInfo.wordCount}} 个词</view>
+      <view class="book-meta">{{bookInfo.unitCount}} 个单元 · {{bookInfo.wordCount}} 个单词 · {{bookInfo.phraseCount}} 个词组</view>
     </view>
     <view class="book-badge">教材</view>
+  </view>
+
+  <view class="block-title">学习内容</view>
+  <view class="kind-switch" aria-label="选择单词或词组">
+    <button wx:for="{{kindOptions}}" wx:key="id" class="kind-option {{activeKind===item.id?'active':''}}" data-kind="{{item.id}}" bindtap="selectKind">
+      <text>{{item.label}}</text><text>{{item.count}}</text>
+    </button>
+  </view>
+
+  <view wx:if="{{activeKind==='word'}}" class="definition-row">
+    <text>释义语言</text>
+    <view class="definition-options">
+      <button wx:for="{{definitionModes}}" wx:key="id" class="definition-option {{definitionMode===item.id?'active':''}}" data-mode="{{item.id}}" bindtap="selectDefinitionMode">{{item.label}}</button>
+    </view>
   </view>
 
   <view wx:if="{{lastProgressText}}" class="resume panel" bindtap="continueBook">
@@ -22,7 +36,7 @@
         <view class="unit-title">{{item.label}}</view>
         <view class="unit-desc">{{item.desc}}</view>
       </view>
-      <view class="unit-count">{{item.count}} 词</view>
+      <view class="unit-count">{{item.count}} 个</view>
     </view>
   </view>
 
@@ -36,9 +50,9 @@
 
   <view class="start-bar panel">
     <view>
-      <view class="start-count">{{selectedCount}} 个词</view>
+      <view class="start-count">{{selectedCount}} 个{{kindLabel}}</view>
       <view class="start-meta">按当前单元和题型开始</view>
     </view>
-    <button class="primary-btn start-btn" bindtap="startPractice">开始练习</button>
+    <button class="primary-btn start-btn" bindtap="startPractice" disabled="{{!selectedCount}}">开始练习</button>
   </view>
 </view>

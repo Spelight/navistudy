@@ -24,7 +24,38 @@
         "pages/bank/bank",
         "pages/me/me",
         "pages/practice/practice",
-        "pages/wrong/wrong"
+        "pages/wrong/wrong",
+        "pages/materials/materials"
+      ]
+    },
+    {
+      "root": "plan",
+      "name": "NaviPlan",
+      "pages": [
+        "pages/index/index",
+        "pages/requirements/requirements",
+        "pages/courses/courses",
+        "pages/course/course",
+        "pages/source/source"
+      ]
+    },
+    {
+      "root": "tools",
+      "name": "NaviTools",
+      "pages": [
+        "pages/index/index",
+        "pages/availability/availability",
+        "pages/fill/fill",
+        "pages/stats/stats"
+      ]
+    },
+    {
+      "root": "reading",
+      "name": "NaviReading",
+      "pages": [
+        "pages/index/index",
+        "pages/reader/reader",
+        "pages/me/me"
       ]
     }
   ],

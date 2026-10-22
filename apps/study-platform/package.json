@@ -3,8 +3,8 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "test": "node tests/contracts.mjs",
-    "test:visual": "node tests/visual.mjs",
+    "test": "node ../../scripts/public-check.cjs",
+    "test:visual": "node tests/visual.mjs && node tests/visual-admin.mjs",
     "serve": "php -S 127.0.0.1:8787 public/router.php"
   }
 }

@@ -1,0 +1,25 @@
+<view class="page">
+  <view class="appbar">
+    <view class="source-heading"><view class="appbar-title">数据源</view><view class="appbar-sub">北航教务与 NaviPassport 快照</view></view>
+    <button class="top-button" bindtap="goPassport"><text>{{account ? account.username : '登录'}}</text></button>
+  </view>
+  <view class="panel">
+    <view class="tag">{{snapshot ? '已有快照' : '尚未导入'}}</view>
+    <view wx:if="{{snapshot}}" class="snapshot-meta">
+      <view>{{snapshot.student.major}} · {{snapshot.courses.length}} 门课程</view>
+      <view class="snapshot-time">更新于 {{updatedAtText}}</view>
+    </view>
+    <label class="field">北航学号<input class="input" value="{{username}}" bindinput="inputUsername" autocomplete="username"/></label>
+    <label class="field">北航密码<input class="input" password value="{{password}}" bindinput="inputPassword"/></label>
+    <label wx:if="{{captchaImage}}" class="field">验证码<image class="captcha" src="{{captchaImage}}" mode="widthFix"/><input class="input" value="{{captcha}}" bindinput="inputCaptcha"/></label>
+    <button class="primary-btn import-button" bindtap="importData" loading="{{importing}}" disabled="{{importing}}"><text>{{snapshot ? '更新教务数据' : '首次导入'}}</text></button>
+    <view wx:if="{{errorMessage}}" class="import-error">
+      <view class="error-title">{{domainError ? '请求域名未获微信授权' : '本次操作未完成'}}</view>
+      <view>{{errorMessage}}</view>
+      <button wx:if="{{domainError}}" class="secondary-btn domain-button" bindtap="copyServiceDomain"><text>复制服务域名</text></button>
+    </view>
+    <view class="notice">普通刷新只读取已保存快照。只有点击上方按钮时访问北航教务；密码、Cookie 和原始响应不会保存。</view>
+  </view>
+  <view class="actions"><button class="secondary-btn" bindtap="pull" disabled="{{importing}}"><text>从通行证刷新</text></button><button class="secondary-btn" open-type="share"><text>分享 NaviPlan</text></button></view>
+</view>
+<view class="module-tabbar"><navigator class="module-tab" url="/plan/pages/index/index" open-type="redirect">概览</navigator><navigator class="module-tab" url="/plan/pages/requirements/requirements" open-type="redirect">培养方案</navigator><navigator class="module-tab" url="/plan/pages/courses/courses" open-type="redirect">课程</navigator><navigator class="module-tab active" url="/plan/pages/source/source" open-type="redirect">数据源</navigator><navigator class="module-tab module-home" url="/pages/portal/portal" open-type="reLaunch">NaviStudy</navigator></view>

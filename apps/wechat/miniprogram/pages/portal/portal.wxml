@@ -1,13 +1,31 @@
-<view class="portal">
+<view class="portal theme-{{theme}}">
   <view class="portal-head">
     <view class="brand-lockup">
-      <view class="brand-mark"><view class="mark-line one"></view><view class="mark-line two"></view><view class="mark-line three"></view></view>
+      <image class="brand-mark" src="/assets/navistudy-mark.svg" mode="aspectFit" />
       <view>
-        <view class="brand-name">NaviStudy</view>
+        <view class="brand-name" aria-label="NaviStudy"><text>Navi</text><text class="brand-name-accent">Study</text></view>
         <view class="brand-sub">选择要进入的学习空间</view>
       </view>
     </view>
-    <button class="passport-chip" bindtap="goPassport"><view class="passport-dot"></view><text>{{passportLabel}}</text><text class="passport-sync">{{syncLabel}}</text></button>
+    <view class="portal-actions">
+      <button class="passport-chip" bindtap="goPassport">
+        <view class="passport-dot"></view>
+        <text>{{passportLabel}}</text>
+        <text class="passport-sync">{{syncLabel}}</text>
+      </button>
+      <view class="theme-toggle" aria-label="切换白天或夜间模式">
+        <view class="theme-copy">
+          <text class="theme-label">{{themeLabel}}</text>
+          <text class="theme-hint">{{themeHint}}</text>
+        </view>
+        <switch
+          class="theme-switch"
+          checked="{{isLightTheme}}"
+          color="#2c7be5"
+          bindchange="toggleTheme"
+        />
+      </view>
+    </view>
   </view>
 
   <view class="study-stack">
@@ -17,7 +35,7 @@
       bindtap="continueLearning"
       hover-class="study-row-pressed"
       hover-stay-time="80"
-      aria-label="继续上次学习"
+      aria-label="继续上次进度"
     >
       <view class="continue-symbol"><view class="continue-hand"></view></view>
       <view class="continue-copy">
@@ -27,14 +45,13 @@
       </view>
       <view class="row-action continue-action"><view class="row-arrow"></view></view>
     </button>
-    <view wx:else class="study-row continue-row continue-empty" aria-label="还没有学习记录">
+    <view wx:else class="study-row continue-row continue-empty" aria-label="还没有继续项">
       <view class="continue-symbol"><view class="continue-hand"></view></view>
       <view class="continue-copy">
         <text class="continue-label">{{continuation.label}}</text>
         <text class="continue-title">{{continuation.title}}</text>
         <text class="continue-meta">{{continuation.meta}}</text>
       </view>
-      <view class="row-action continue-action"><view class="row-arrow"></view></view>
     </view>
 
     <view class="module-group">
@@ -49,8 +66,9 @@
         aria-label="进入{{item.name}}，{{item.subject}}"
       >
         <view class="module-symbol">
-          <view wx:if="{{item.id==='words'}}" class="word-symbol">Aa</view>
-          <view wx:else class="mt-symbol"><view class="mt-bar"></view><view class="mt-bar short"></view><view class="mt-bar"></view></view>
+          <view wx:if="{{item.id === 'words'}}" class="word-symbol">Aa</view>
+          <view wx:elif="{{item.id === 'mt'}}" class="mt-symbol"><view class="mt-bar"></view><view class="mt-bar short"></view><view class="mt-bar"></view></view>
+          <view wx:else class="plan-symbol"><view></view><view></view><view></view></view>
         </view>
         <view class="module-copy">
           <view class="module-topline"><text class="module-name">{{item.name}}</text><text class="module-metric">{{item.metric}}</text></view>
@@ -64,11 +82,31 @@
         <view class="row-action"><view class="row-arrow"></view></view>
       </button>
     </view>
+
+    <view class="tools-group">
+      <view class="group-label">实用工具</view>
+      <button class="study-row module-row module-tools" bindtap="enterTools" hover-class="study-row-pressed" aria-label="进入 NaviTools 实用工具">
+        <view class="module-symbol"><view class="word-symbol">NT</view></view>
+        <view class="module-copy"><view class="module-topline"><text class="module-name">NaviTools</text><text class="module-metric">工具箱</text></view><view class="module-subject">协作工具<text class="module-separator"> · </text><text class="module-summary">空闲时间收集</text></view></view>
+        <view class="row-action"><view class="row-arrow"></view></view>
+      </button>
+    </view>
+  </view>
+
+  <view class="web-entry">
+    <view class="web-entry-copy">
+      <text class="web-entry-title">访问网页版获得更完整的体验</text>
+      <text class="web-entry-url">study.example.test</text>
+    </view>
+    <button class="web-entry-button" bindtap="openWeb" hover-class="web-entry-button-pressed" aria-label="复制 NaviStudy 网页版地址">
+      <text>访问网页版</text>
+      <view class="web-entry-icon"></view>
+    </button>
   </view>
 
   <view class="portal-foot">
     <view class="status-dot"></view>
-    <text>Words 与 MT 数据独立保存</text>
-    <text class="version">v{{version}}</text>
+    <text>学习数据按产品独立保存</text>
+    <view class="version" bindtap="tapVersion">v{{version}}</view>
   </view>
 </view>

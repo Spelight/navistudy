@@ -14,7 +14,7 @@ try {
     $users->execute([$now]);
     $ids = $users->fetchAll(PDO::FETCH_COLUMN);
     foreach ($ids as $id) {
-        foreach (['words','mt'] as $product) {
+        foreach (['words','mt','reading','plan'] as $product) {
             $pdo = $database->product($product);
             $pdo->beginTransaction();
             foreach (['snapshots','mutations','documents'] as $table) $pdo->prepare("DELETE FROM {$table} WHERE user_id=?")->execute([$id]);
@@ -32,4 +32,3 @@ try {
     if ($passport->inTransaction()) $passport->rollBack();
     throw $error;
 }
-

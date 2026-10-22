@@ -1,7 +1,7 @@
 App({
   globalData: {
-    version: '0.1.0',
-    apiBase: 'https://mt.dxir.net.cn',
+    version: '0.1.2',
+    apiBase: 'https://mt.example.test',
     user: '',
     passportUser: ''
   },

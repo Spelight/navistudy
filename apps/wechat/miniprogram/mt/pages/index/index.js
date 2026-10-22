@@ -10,6 +10,7 @@ const modeCards = [
 ];
 
 Page({
+  behaviors: [require('../../../behaviors/theme')],
   data: {
     chapters: [],
     chapterNames: [],
@@ -22,6 +23,7 @@ Page({
     remaining: 0,
     lastProgress: null,
     lastProgressText: '',
+    hideLegacy: false,
     noticeHidden: false
   },
 
@@ -36,9 +38,11 @@ Page({
     const savedChapter = wx.getStorageSync('military_active_chapter') || 'all';
     const chapterIndex = Math.max(chapters.findIndex(item => item.id === savedChapter), 0);
     const chapter = chapters[chapterIndex] || chapters[0];
-    const stats = store.getStats({ chapter: chapter.id });
+    const hideLegacy = store.getHideLegacy();
+    const stats = store.getStats({ chapter: chapter.id, hideLegacy });
     const learning = store.loadData();
-    const last = learning.lastProgress;
+    const savedProgress = learning.lastProgress;
+    const last = savedProgress && Boolean(savedProgress.hideLegacy) === hideLegacy ? savedProgress : null;
     const lastQuestion = last ? questions.getQuestion(last.currentId) : null;
     const lastProgressText = lastQuestion
       ? `${lastQuestion.chapter} · ${questions.typeName(lastQuestion.type)} · 第 ${Number(last.index || 0) + 1} 题`
@@ -46,7 +50,7 @@ Page({
 
     this.setData({
       chapters,
-      chapterNames: chapters.map(item => `${item.title} (${questions.filterQuestions({ chapter: item.id }).length})`),
+      chapterNames: chapters.map(item => `${item.title} (${questions.filterQuestions({ chapter: item.id, hideLegacy }).length})`),
       chapterIndex,
       activeChapter: chapter.id,
       activeChapterText: chapter.title,
@@ -55,6 +59,7 @@ Page({
       remaining: Math.max(stats.total - stats.answered, 0),
       lastProgress: last || null,
       lastProgressText,
+      hideLegacy,
       noticeHidden: !!wx.getStorageSync('military_notice_hidden')
     });
   },
@@ -63,6 +68,11 @@ Page({
     const chapterIndex = Number(event.detail.value || 0);
     const chapter = this.data.chapters[chapterIndex] || this.data.chapters[0];
     wx.setStorageSync('military_active_chapter', chapter.id);
+    this.prepare();
+  },
+
+  changeHideLegacy(event) {
+    store.setHideLegacy(event.detail.value);
     this.prepare();
   },
 
@@ -106,8 +116,13 @@ Page({
     wx.redirectTo({ url: '/mt/pages/bank/bank' });
   },
 
+  goMaterials() {
+    wx.navigateTo({ url: '/mt/pages/materials/materials' });
+  },
+
   goWrong() {
     wx.navigateTo({ url: `/mt/pages/wrong/wrong?chapter=${encodeURIComponent(this.data.activeChapter)}` });
-  }
-});
+  },
 
+  goStudy() { wx.reLaunch({ url: '/pa' + 'ges/portal/portal' }); }
+});

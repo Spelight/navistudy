@@ -13,6 +13,10 @@ const store = require(path.join(root, 'miniprogram', 'utils', 'store.js'));
 const sample = questions.bank.questions.find(item => item.type === 'single');
 
 assert.deepStrictEqual(store.loadData().favorites, []);
+assert.strictEqual(store.getHideLegacy(), false, '旧用户默认应显示历史题');
+store.setHideLegacy(true);
+assert.strictEqual(store.getHideLegacy(), true, '不看历史题设置应持久化');
+store.setHideLegacy(false);
 assert.strictEqual(store.toggleFavorite(sample.id), true);
 assert.strictEqual(store.isFavorite(sample.id), true);
 assert.strictEqual(store.toggleFavorite(sample.id), false);
@@ -25,8 +29,8 @@ assert.strictEqual(store.getWrongQuestions().length, 0, '答对后应移出错�
 assert.strictEqual(store.getStats().mastered, 1);
 
 const progress = { chapter: 'all', type: 'all', order: 'sequential', source: '', questionId: '', index: 3, currentId: sample.id };
+assert.notStrictEqual(store.scopeKey(progress), store.scopeKey(Object.assign({}, progress, { hideLegacy: true })), '隐藏历史题应使用独立练习断点');
 store.saveProgress(progress);
 assert.strictEqual(store.getSavedProgress(progress).currentId, sample.id);
 
 console.log('study-store.test: OK');
-

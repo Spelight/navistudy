@@ -1,30 +1,43 @@
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
+const { loadVersions, syncVersions } = require('../../../scripts/versioning.cjs');
 
-const root = path.resolve(__dirname, '..');
-const miniprogramRoot = path.join(root, 'miniprogram');
+const appRoot = path.resolve(__dirname, '..');
+const repositoryRoot = path.resolve(appRoot, '..', '..');
+const miniprogramRoot = path.join(appRoot, 'miniprogram');
 const sources = {
-  words: path.resolve(root, '..', '..', 'packages', 'words-mini', 'miniprogram'),
-  mt: path.resolve(root, '..', '..', 'packages', 'mt-mini', 'miniprogram')
+  words: path.join(repositoryRoot, 'packages', 'words-mini', 'miniprogram'),
+  mt: path.join(repositoryRoot, 'packages', 'mt-mini', 'miniprogram'),
+  reading: path.join(repositoryRoot, 'packages', 'reading-mini', 'miniprogram'),
+  plan: path.join(repositoryRoot, 'apps', 'plan', 'miniprogram', 'plan'),
+  tools: path.join(repositoryRoot, 'apps', 'tools', 'miniprogram', 'tools'),
 };
 
 const moduleConfig = {
   words: {
     versionField: 'wordsVersion',
     tabs: [
-      ['index', '学习', 'study'],
-      ['books', '词表', 'books'],
-      ['me', '我的', 'me']
-    ]
+      ['index', '首页', 'study'],
+      ['books', '大纲', 'books'],
+      ['me', '我的', 'me'],
+    ],
   },
   mt: {
     versionField: 'mtVersion',
     tabs: [
       ['index', '练习', 'study'],
       ['bank', '题库', 'books'],
-      ['me', '我的', 'me']
-    ]
-  }
+      ['me', '我的', 'me'],
+    ],
+  },
+  reading: {
+    versionField: 'readingVersion',
+    tabs: [
+      ['index', '精读', 'study'],
+      ['me', '书签', 'me'],
+    ],
+  },
 };
 
 function assertGeneratedTarget(target) {
@@ -51,6 +64,24 @@ function copyDirectory(source, target) {
   });
 }
 
+function applySharedTheme(target) {
+  walk(target).forEach(file => {
+    const extension = path.extname(file);
+    if (extension === '.wxml') {
+      let content = fs.readFileSync(file, 'utf8');
+      content = content.replace(/class="page(?![^"{]*theme-\{\{naviTheme\}\})/, 'class="page theme-{{naviTheme}}');
+      fs.writeFileSync(file, content, 'utf8');
+    }
+    if (extension === '.js' && file.includes(`${path.sep}pages${path.sep}`)) {
+      let content = fs.readFileSync(file, 'utf8');
+      if (content.includes('Page({') && !content.includes("behaviors/theme")) {
+        content = content.replace('Page({', "Page({\n  behaviors: [require('../../../behaviors/theme')],");
+        fs.writeFileSync(file, content, 'utf8');
+      }
+    }
+  });
+}
+
 function moduleNavigation(moduleId, activePage) {
   const tabs = moduleConfig[moduleId].tabs.map(([page, label, icon]) => {
     const active = page === activePage ? ' active' : '';
@@ -61,9 +92,9 @@ function moduleNavigation(moduleId, activePage) {
 }
 
 const navigationStyle = `
-.page { padding-bottom: calc(158rpx + env(safe-area-inset-bottom)) !important; }
-.module-tabbar { position: fixed; z-index: 100; left: 0; right: 0; bottom: 0; min-height: 112rpx; padding: 10rpx 10rpx calc(10rpx + env(safe-area-inset-bottom)); background: #1b1c1f; border-top: 1rpx solid #303238; display: grid; grid-template-columns: repeat(4, 1fr); }
-.module-tab { min-width: 0; height: 92rpx; color: #7a8499; font-size: 20rpx; font-weight: 700; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7rpx; }
+.page { padding-bottom: calc(166rpx + env(safe-area-inset-bottom)) !important; }
+.module-tabbar { position: fixed; z-index: 100; left: 0; right: 0; bottom: 0; width: 100%; min-width: 0; min-height: 112rpx; box-sizing: border-box; padding: 10rpx 10rpx calc(10rpx + env(safe-area-inset-bottom)); background: #1b1c1f; border-top: 1rpx solid #303238; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.module-tab { min-width: 0; min-height: 92rpx; padding: 6rpx 2rpx; color: #7a8499; font-size: 20rpx; line-height: 1.2; font-weight: 700; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7rpx; text-align: center; }
 .module-tab.active { color: #5a9cf5; }
 .module-tab-icon { width: 42rpx; height: 42rpx; }
 .module-home { color: #98a0ad; }
@@ -71,53 +102,104 @@ const navigationStyle = `
 .module-home-icon view { width: 18rpx; height: 18rpx; border-left: 4rpx solid #70adff; border-bottom: 4rpx solid #70adff; transform: rotate(45deg); }
 `;
 
-function syncModule(moduleId) {
+function mirrorDirectory(source, target) {
+  fs.mkdirSync(target, { recursive: true });
+  const sourceEntries = fs.readdirSync(source, { withFileTypes: true });
+  const sourceNames = new Set(sourceEntries.map(entry => entry.name));
+
+  sourceEntries.forEach(entry => {
+    const sourcePath = path.join(source, entry.name);
+    const targetPath = path.join(target, entry.name);
+    if (entry.isDirectory()) {
+      if (fs.existsSync(targetPath) && !fs.statSync(targetPath).isDirectory()) fs.rmSync(targetPath, { force: true });
+      mirrorDirectory(sourcePath, targetPath);
+    } else if (entry.isFile()) {
+      if (fs.existsSync(targetPath) && fs.statSync(targetPath).isDirectory()) fs.rmSync(targetPath, { recursive: true, force: true });
+      fs.copyFileSync(sourcePath, targetPath);
+    }
+  });
+
+  fs.readdirSync(target, { withFileTypes: true })
+    .filter(entry => !sourceNames.has(entry.name))
+    .forEach(entry => fs.rmSync(path.join(target, entry.name), { recursive: entry.isDirectory(), force: true }));
+}
+
+function createStagingDirectory(moduleId) {
   const source = sources[moduleId];
   const target = path.join(miniprogramRoot, moduleId);
   if (!fs.existsSync(source)) throw new Error(`找不到模块源目录：${source}`);
   assertGeneratedTarget(target);
-  fs.rmSync(target, { recursive: true, force: true });
-  fs.mkdirSync(target, { recursive: true });
-
-  ['assets', 'data', 'pages', 'utils'].forEach(name => {
-    const sourcePath = path.join(source, name);
-    if (fs.existsSync(sourcePath)) copyDirectory(sourcePath, path.join(target, name));
-  });
-  fs.writeFileSync(path.join(target, 'module.wxss'), `${fs.readFileSync(path.join(source, 'app.wxss'), 'utf8').trim()}\n${navigationStyle}`, 'utf8');
-
-  walk(target).forEach(file => {
-    const extension = path.extname(file);
-    if (!['.js', '.json', '.wxml', '.wxss'].includes(extension)) return;
-    let content = fs.readFileSync(file, 'utf8');
-    if (extension !== '.wxss') {
-      content = content.replace(/\/pages\//g, `/${moduleId}/pages/`);
-    }
-    if (extension === '.js') {
-      content = content.replace(/wx\.switchTab\s*\(/g, 'wx.redirectTo(');
-      content = content.replace(/getApp\(\)\.globalData\.version/g, `getApp().globalData.${moduleConfig[moduleId].versionField}`);
-      content = content.replaceAll('../../../../examples/', '../../../../../examples/');
-    }
-    if (extension === '.wxss' && file.includes(`${path.sep}pages${path.sep}`)) {
-      content = `@import "../../module.wxss";\n${content}`;
-    }
-    if (extension === '.wxml') {
-      const page = path.basename(file, '.wxml');
-      if (moduleConfig[moduleId].tabs.some(([tab]) => tab === page)) {
-        content = `${content.trim()}${moduleNavigation(moduleId, page)}`;
-      }
-    }
-    fs.writeFileSync(file, content, 'utf8');
-  });
-
-  fs.writeFileSync(path.join(target, 'GENERATED.md'), `# Generated module\n\nSource: ${source}\n\nRun \`npm run sync-modules\` from the NaviStudy root to regenerate this directory.\n`, 'utf8');
-  console.log(`Synced ${moduleId} from ${source}`);
+  const stagingRoot = fs.mkdtempSync(path.join(os.tmpdir(), `navistudy-${moduleId}-`));
+  const stagingTarget = path.join(stagingRoot, moduleId);
+  fs.mkdirSync(stagingTarget, { recursive: true });
+  return { source, stagingRoot, stagingTarget, target };
 }
 
-function readVersion(source) {
-  const appSource = fs.readFileSync(path.join(source, 'app.js'), 'utf8');
-  const match = appSource.match(/version:\s*['"]([^'"]+)['"]/);
-  if (!match) throw new Error(`无法读取模块版本：${source}`);
-  return match[1];
+function syncGeneratedModule(moduleId) {
+  const { source, stagingRoot, stagingTarget, target } = createStagingDirectory(moduleId);
+  try {
+    copyDirectory(source, stagingTarget);
+    applySharedTheme(stagingTarget);
+    const sourceLabel = path.relative(repositoryRoot, source).replaceAll('\\', '/');
+    fs.writeFileSync(
+      path.join(stagingTarget, 'GENERATED.md'),
+      `# Generated module\n\nSource: \`${sourceLabel}\`\n\nRun \`npm run sync:wechat\` from the repository root to regenerate this directory.\n`,
+      'utf8',
+    );
+    mirrorDirectory(stagingTarget, target);
+    console.log(`Synced ${moduleId} from ${sourceLabel}`);
+  } finally {
+    fs.rmSync(stagingRoot, { recursive: true, force: true });
+  }
+}
+
+function syncStandaloneModule(moduleId) {
+  const { source, stagingRoot, stagingTarget, target } = createStagingDirectory(moduleId);
+  try {
+    ['assets', 'data', 'pages', 'utils'].forEach(name => {
+      const sourcePath = path.join(source, name);
+      if (fs.existsSync(sourcePath)) copyDirectory(sourcePath, path.join(stagingTarget, name));
+    });
+    fs.writeFileSync(
+      path.join(stagingTarget, 'module.wxss'),
+      `${fs.readFileSync(path.join(source, 'app.wxss'), 'utf8').trim()}\n${navigationStyle}`,
+      'utf8',
+    );
+
+    walk(stagingTarget).forEach(file => {
+      const extension = path.extname(file);
+      if (!['.js', '.json', '.wxml', '.wxss'].includes(extension)) return;
+      let content = fs.readFileSync(file, 'utf8');
+      if (extension !== '.wxss') content = content.replace(/\/pages\//g, `/${moduleId}/pages/`);
+      if (extension !== '.wxss') content = content.replace(`/${moduleId}/pages/passport/passport`, '/pages/passport/passport');
+      if (extension === '.js') {
+        content = content.replace(/wx\.switchTab\s*\(/g, 'wx.redirectTo(');
+        content = content.replace(/getApp\(\)\.globalData\.version/g, `getApp().globalData.${moduleConfig[moduleId].versionField}`);
+      }
+      if (extension === '.wxss' && file.includes(`${path.sep}pages${path.sep}`)) {
+        content = `@import "../../module.wxss";\n${content}`;
+      }
+      if (extension === '.wxml') {
+        const page = path.basename(file, '.wxml');
+        if (moduleConfig[moduleId].tabs.some(([tab]) => tab === page)) {
+          content = `${content.trim()}${moduleNavigation(moduleId, page)}`;
+        }
+      }
+      fs.writeFileSync(file, content, 'utf8');
+    });
+    applySharedTheme(stagingTarget);
+
+    const sourceLabel = path.relative(repositoryRoot, source).replaceAll('\\', '/');
+    fs.writeFileSync(
+      path.join(stagingTarget, 'GENERATED.md'),
+      `# Generated module\n\nSource: \`${sourceLabel}\`\n\nRun \`npm run sync:wechat\` from the repository root to regenerate this directory.\n`,
+      'utf8',
+    );
+    mirrorDirectory(stagingTarget, target);
+    console.log(`Synced ${moduleId} from ${sourceLabel}`);
+  } finally {
+    fs.rmSync(stagingRoot, { recursive: true, force: true });
+  }
 }
 
 function syncManifest() {
@@ -125,16 +207,21 @@ function syncManifest() {
   delete require.cache[require.resolve(wordsDataPath)];
   const wordsData = require(wordsDataPath);
   const mtBank = require(path.join(sources.mt, 'data', 'question-bank.js'));
-  const wordsVersion = readVersion(sources.words);
-  const mtVersion = readVersion(sources.mt);
+  const versions = loadVersions();
+  const wordsVersion = versions.modules.words;
+  const mtVersion = versions.modules.mt;
+  const readingVersion = versions.modules.reading;
   const modules = [
     {
       id: 'words',
       name: 'NaviWords',
       subject: '英语词汇',
       summary: 'Book 3、Book 4、Book 5 与双学位词汇',
-      metric: `${wordsData.getAllWords().length} 词`,
-      path: '/words/pages/index/index'
+      metric: `${wordsData.getAllWords().length} 词 / ${wordsData.getAllPhrases().length} 组`,
+      path: '/words/pages/index/index',
+      webUrl: 'https://study.example.test/words/',
+      serviceMode: 'sync',
+      visibility: 'public',
     },
     {
       id: 'mt',
@@ -142,25 +229,58 @@ function syncManifest() {
       subject: '军事理论',
       summary: '六章题库、错题与四类题型练习',
       metric: `${mtBank.questions.length} 题`,
-      path: '/mt/pages/index/index'
-    }
+      path: '/mt/pages/index/index',
+      webUrl: 'https://study.example.test/mt/',
+      serviceMode: 'sync',
+      visibility: 'public',
+    },
+    {
+      id: 'reading',
+      name: 'NaviReading',
+      subject: '现代大学英语 Book 5',
+      summary: '五单元逐段对照、教材注释与个人批注',
+      metric: '5 段',
+      path: '/reading/pages/index/index',
+      webUrl: 'https://study.example.test/reading/',
+      serviceMode: 'sync',
+      visibility: 'hidden',
+    },
+    {
+      id: 'plan',
+      name: 'NaviPlan',
+      subject: '培养方案与毕业进度',
+      summary: '学分审计、课程修正与选课建议',
+      metric: '毕业规划',
+      path: '/plan/pages/index/index',
+      webUrl: 'https://study.example.test/naviplan/',
+      serviceMode: 'sync',
+      visibility: 'hidden',
+    },
   ];
   const dataDirectory = path.join(miniprogramRoot, 'data');
   fs.mkdirSync(dataDirectory, { recursive: true });
   fs.writeFileSync(
     path.join(dataDirectory, 'modules.js'),
     `// Generated by scripts/sync-modules.cjs.\nmodule.exports = ${JSON.stringify(modules, null, 2)};\n`,
-    'utf8'
+    'utf8',
   );
 
   const appPath = path.join(miniprogramRoot, 'app.js');
   const appSource = fs.readFileSync(appPath, 'utf8')
+    .replace(/version:\s*['"][^'"]+['"]/, `version: '${versions.release}'`)
     .replace(/wordsVersion:\s*['"][^'"]+['"]/, `wordsVersion: '${wordsVersion}'`)
-    .replace(/mtVersion:\s*['"][^'"]+['"]/, `mtVersion: '${mtVersion}'`);
+    .replace(/mtVersion:\s*['"][^'"]+['"]/, `mtVersion: '${mtVersion}'`)
+    .replace(/readingVersion:\s*['"][^'"]+['"]/, `readingVersion: '${readingVersion}'`)
+    .replace(/planVersion:\s*['"][^'"]+['"]/, `planVersion: '${versions.modules.plan}'`)
+    .replace(/toolsVersion:\s*['"][^'"]+['"]/, `toolsVersion: '${versions.modules.tools}'`);
   fs.writeFileSync(appPath, appSource, 'utf8');
-  console.log(`Updated manifest: NaviWords ${wordsVersion}, NaviMT ${mtVersion}`);
+  console.log(`Updated manifest: NaviStudy ${versions.release}, Words ${wordsVersion}, MT ${mtVersion}, Reading ${readingVersion}, Plan ${versions.modules.plan}, Tools ${versions.modules.tools}`);
 }
 
-syncModule('words');
-syncModule('mt');
+syncVersions();
+syncStandaloneModule('words');
+syncStandaloneModule('mt');
+syncStandaloneModule('reading');
+syncGeneratedModule('plan');
+syncGeneratedModule('tools');
 syncManifest();

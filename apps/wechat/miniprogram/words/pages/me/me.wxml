@@ -1,4 +1,4 @@
-<view class="page me-page">
+<view class="page theme-{{naviTheme}} me-page">
   <view class="appbar">
     <view class="nav-title">我的</view>
   </view>
@@ -45,7 +45,7 @@
       <view class="tool-icon web-icon"></view>
       <view class="tool-copy">
         <text class="tool-title">PC 网页版</text>
-        <text class="tool-desc">复制 study.dxir.net.cn/words/ 链接</text>
+        <text class="tool-desc">复制 study.example.test/words/ 链接</text>
       </view>
       <text class="tool-arrow">></text>
     </view>
@@ -98,7 +98,7 @@
     </view>
     <view class="about-row">
       <text>网页</text>
-      <text class="muted">words.dxir.net.cn</text>
+      <text class="muted">words.example.test</text>
     </view>
     <view class="about-row">
       <text>作者</text>
@@ -106,4 +106,4 @@
     </view>
   </view>
 </view>
-<view class="module-tabbar"><navigator class="module-tab" url="/words/pages/index/index" open-type="redirect"><image class="module-tab-icon" src="/words/assets/tab/study.png" mode="aspectFit" /><text>学习</text></navigator><navigator class="module-tab" url="/words/pages/books/books" open-type="redirect"><image class="module-tab-icon" src="/words/assets/tab/books.png" mode="aspectFit" /><text>词表</text></navigator><navigator class="module-tab active" url="/words/pages/me/me" open-type="redirect"><image class="module-tab-icon" src="/words/assets/tab/me-active.png" mode="aspectFit" /><text>我的</text></navigator><navigator class="module-tab module-home" url="/pages/portal/portal" open-type="reLaunch"><view class="module-home-icon"><view></view></view><text>NaviStudy</text></navigator></view>
+<view class="module-tabbar"><navigator class="module-tab" url="/words/pages/index/index" open-type="redirect"><image class="module-tab-icon" src="/words/assets/tab/study.png" mode="aspectFit" /><text>首页</text></navigator><navigator class="module-tab" url="/words/pages/books/books" open-type="redirect"><image class="module-tab-icon" src="/words/assets/tab/books.png" mode="aspectFit" /><text>大纲</text></navigator><navigator class="module-tab active" url="/words/pages/me/me" open-type="redirect"><image class="module-tab-icon" src="/words/assets/tab/me-active.png" mode="aspectFit" /><text>我的</text></navigator><navigator class="module-tab module-home" url="/pages/portal/portal" open-type="reLaunch"><view class="module-home-icon"><view></view></view><text>NaviStudy</text></navigator></view>

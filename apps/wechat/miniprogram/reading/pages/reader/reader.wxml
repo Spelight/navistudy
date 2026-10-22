@@ -1,0 +1,61 @@
+<view class="page theme-{{naviTheme}} reader-page">
+  <view class="reader-head">
+    <view class="eyebrow">UNIT {{unitId}} · {{author}}</view>
+    <view class="reader-title">{{title}}</view>
+    <view class="reader-zh">{{titleZh}}</view>
+  </view>
+
+  <view class="reader-tools">
+    <view class="language-switch">
+      <button class="{{language === 'both' ? 'active' : ''}}" data-language="both" bindtap="setLanguage">中英</button>
+      <button class="{{language === 'en' ? 'active' : ''}}" data-language="en" bindtap="setLanguage">EN</button>
+      <button class="{{language === 'zh' ? 'active' : ''}}" data-language="zh" bindtap="setLanguage">中文</button>
+    </view>
+    <button class="bookmark {{bookmarked ? 'saved' : ''}}" bindtap="toggleBookmark">{{bookmarked ? '已收藏' : '收藏本段'}}</button>
+  </view>
+
+  <view class="paragraph-meta"><text>§ {{paragraphNumber}}</text><text>{{progressLabel}}</text></view>
+  <view class="reading-sheet">
+    <text wx:if="{{language !== 'zh'}}" class="english" selectable>{{paragraph.en}}</text>
+    <view wx:if="{{language === 'both'}}" class="translation-rule"></view>
+    <text wx:if="{{language !== 'en'}}" class="chinese" selectable>{{paragraph.zh}}</text>
+  </view>
+
+  <button class="scan-entry" bindtap="previewScan"><text>查看教材原页</text><text>p.{{paragraph.page - 13}} ›</text></button>
+
+  <view wx:if="{{textbookNotes.length}}" class="notes-section">
+    <view class="section-title">教材 NOTES</view>
+    <view wx:for="{{textbookNotes}}" wx:key="n" class="note-block">
+      <text class="note-en" selectable>{{item.en}}</text>
+      <text class="note-zh" selectable>{{item.zh}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{vocabulary.length}}" class="notes-section">
+    <view class="section-title">教材词汇</view>
+    <view wx:for="{{vocabulary}}" wx:key="term" class="vocab-row">
+      <text>{{item.term}}</text><text>{{item.zh}}</text><text>{{item.en}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{analyses.length}}" class="notes-section">
+    <view class="section-title">精读批注</view>
+    <view wx:for="{{analyses}}" wx:key="title" class="analysis-block">
+      <text class="analysis-title">{{item.title}}</text>
+      <text class="analysis-quote" selectable>{{item.quote}}</text>
+      <text class="note-en" selectable>{{item.en}}</text>
+      <text class="note-zh" selectable>{{item.zh}}</text>
+    </view>
+  </view>
+
+  <view class="personal-note">
+    <view class="section-title">我的批注</view>
+    <textarea maxlength="20000" value="{{personalNote}}" bindinput="onNoteInput" placeholder="写下理解、疑问或课堂补充"></textarea>
+    <button class="secondary" bindtap="saveNote">保存本段批注</button>
+  </view>
+
+  <view class="paragraph-nav">
+    <button class="secondary" bindtap="previous" disabled="{{unitId === 1 && paragraphNumber === 1}}">上一段</button>
+    <button class="primary" bindtap="next" disabled="{{unitId === 5 && paragraphNumber === paragraphCount}}">下一段</button>
+  </view>
+</view>

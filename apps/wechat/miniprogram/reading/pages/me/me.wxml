@@ -1,0 +1,16 @@
+<view class="page theme-{{naviTheme}} saved-page">
+  <view class="eyebrow">READING NOTES</view>
+  <view class="page-title">书签与批注</view>
+  <button class="passport-row" bindtap="goPassport"><text>NaviPassport</text><text>{{syncStatus}} ›</text></button>
+
+  <view wx:if="{{saved.length}}" class="saved-list">
+    <button wx:for="{{saved}}" wx:key="key" class="saved-row" data-key="{{item.key}}" bindtap="openParagraph">
+      <text class="saved-place">Unit {{item.unitId}} · §{{item.paragraphNumber}}</text>
+      <text class="saved-title">{{item.title}}</text>
+      <text class="saved-excerpt">{{item.excerpt}}...</text>
+      <text wx:if="{{item.note}}" class="saved-note">{{item.note}}</text>
+    </button>
+  </view>
+  <view wx:else class="empty-state"><text>还没有书签或批注</text><text>阅读时收藏段落，或写下自己的理解。</text></view>
+</view>
+<view class="module-tabbar"><navigator class="module-tab" url="/reading/pages/index/index" open-type="redirect"><image class="module-tab-icon" src="/reading/assets/tab/study.png" mode="aspectFit" /><text>精读</text></navigator><navigator class="module-tab active" url="/reading/pages/me/me" open-type="redirect"><image class="module-tab-icon" src="/reading/assets/tab/me-active.png" mode="aspectFit" /><text>书签</text></navigator><navigator class="module-tab module-home" url="/pages/portal/portal" open-type="reLaunch"><view class="module-home-icon"><view></view></view><text>NaviStudy</text></navigator></view>

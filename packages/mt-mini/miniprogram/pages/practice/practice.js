@@ -1,6 +1,11 @@
 const questions = require('../../utils/questions');
 const store = require('../../utils/store');
 
+function track(name, data = {}) {
+  const app = getApp();
+  if (app && typeof app.trackAnalytics === 'function') app.trackAnalytics(name, Object.assign({ product: 'mt' }, data));
+}
+
 function decode(value, fallback) {
   if (!value) return fallback;
   try { return decodeURIComponent(value); } catch (error) { return value; }
@@ -29,6 +34,7 @@ Page({
     isLast: false,
     paletteOpen: false,
     palette: [],
+    hideLegacy: false,
     legacyText: '',
     isMultiple: false,
     isShort: false,
@@ -41,7 +47,8 @@ Page({
     const order = query.order || 'sequential';
     const source = query.source || '';
     const questionId = query.questionId || '';
-    let list = questions.filterQuestions({ chapter, type });
+    const hideLegacy = store.getHideLegacy();
+    let list = questions.filterQuestions({ chapter, type, hideLegacy });
     const learning = store.loadData();
 
     if (source === 'wrong') {
@@ -52,7 +59,7 @@ Page({
 
     if (order === 'random') list = questions.shuffle(list);
 
-    const scope = { chapter, type, order, source, questionId };
+    const scope = { chapter, type, order, source, questionId, hideLegacy };
     const saved = Object.prototype.hasOwnProperty.call(query, 'index') ? null : store.getSavedProgress(scope);
     const targetId = questionId || (saved && saved.currentId) || '';
     const byId = targetId ? list.findIndex(item => item.id === targetId) : -1;
@@ -67,11 +74,14 @@ Page({
       order,
       source,
       questionId,
+      hideLegacy,
       list,
       index: Math.min(index, Math.max(list.length - 1, 0)),
       scopeLabel: `${chapterLabel}${sourceSuffix}`
     });
     this.loadCurrent();
+    track('page_view');
+    track('study_start', { metadata: { chapter, type, order, source: source || 'bank', count: list.length } });
   },
 
   onHide() { this.persistProgress(); },
@@ -130,6 +140,7 @@ Page({
       order: this.data.order,
       source: this.data.source,
       questionId: this.data.questionId,
+      hideLegacy: this.data.hideLegacy,
       index: this.data.index,
       currentId: current.id,
       questionText: current.stem || ''
@@ -157,6 +168,7 @@ Page({
     if (this.data.answered || !this.data.selected.length) return;
     const correct = questions.checkAnswer(this.data.current, this.data.selected);
     store.recordAnswer(this.data.current, this.data.selected, correct, this.data.current.type);
+    track('question_answered', { itemId: this.data.current.id, value: correct ? 1 : 0, metadata: { type: this.data.current.type } });
     const expected = questions.normalizeAnswer(this.data.current);
     const currentOptions = this.data.currentOptions.map(option => {
       let stateClass = '';
@@ -175,6 +187,7 @@ Page({
   assessShort(event) {
     const correct = event.currentTarget.dataset.result === 'known';
     store.recordAnswer(this.data.current, [], correct, 'short');
+    track('question_answered', { itemId: this.data.current.id, value: correct ? 1 : 0, metadata: { type: 'short' } });
     this.setData({ correct, palette: this.buildPalette() });
     this.nextQuestion();
   },
@@ -183,6 +196,7 @@ Page({
     if (!this.data.current.id) return;
     const favorite = store.toggleFavorite(this.data.current.id);
     this.setData({ favorite });
+    track(favorite ? 'favorite_added' : 'favorite_removed', { itemId: this.data.current.id });
     wx.showToast({ title: favorite ? '已收藏' : '已取消收藏', icon: 'none' });
   },
 

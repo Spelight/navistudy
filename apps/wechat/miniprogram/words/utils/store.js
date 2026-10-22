@@ -1,4 +1,4 @@
-const { getBookIdByUnit, getItemKey, getWordsByScope } = require('./data');
+const { getBookIdByUnit, getItemKey, getItemsByScope } = require('./data');
 
 const DATA_KEY = 'words_learning_data';
 const USER_KEY = 'navi_passport_user';
@@ -11,17 +11,39 @@ function defaultData() {
     wrongbook: {},
     last_progress: null,
     progress_positions: {},
-    study_events: []
+    study_events: [],
+    app_settings: { definitionMode: 'both' }
   };
 }
 
 function loadData() {
   const stored = wx.getStorageSync(DATA_KEY);
-  return Object.assign(defaultData(), stored || {});
+  const data = Object.assign(defaultData(), stored || {});
+  data.app_settings = Object.assign({ definitionMode: 'both' }, data.app_settings || {});
+  return data;
 }
 
 function saveData(data) {
-  wx.setStorageSync(DATA_KEY, Object.assign(defaultData(), data || {}));
+  const next = Object.assign(defaultData(), data || {});
+  next.app_settings = Object.assign({ definitionMode: 'both' }, next.app_settings || {});
+  wx.setStorageSync(DATA_KEY, next);
+  try {
+    const app = getApp();
+    if (app && typeof app.queueSync === 'function') app.queueSync('words', next);
+  } catch (error) {}
+}
+
+function getDefinitionMode() {
+  const mode = loadData().app_settings.definitionMode;
+  return ['both', 'en', 'zh'].includes(mode) ? mode : 'both';
+}
+
+function setDefinitionMode(mode) {
+  const next = ['both', 'en', 'zh'].includes(mode) ? mode : 'both';
+  const data = loadData();
+  data.app_settings.definitionMode = next;
+  saveData(data);
+  return next;
 }
 
 function getUser() {
@@ -107,6 +129,10 @@ function getWrongList(filters = {}) {
   }).filter(entry => {
     if (key && entry.key !== key) return false;
     if (bookId !== 'all' && entry.bookId !== bookId) return false;
+    if (filters.kind && filters.kind !== 'all') {
+      const kind = entry.item.t === 'trans' ? 'phrase' : 'word';
+      if (kind !== filters.kind) return false;
+    }
     if (type !== 'all' && Number(entry[type] || 0) <= 0) return false;
     return true;
   }).sort((a, b) => Number(b.lastWrongAt || 0) - Number(a.lastWrongAt || 0));
@@ -137,6 +163,18 @@ function progressKey(progress = {}) {
   return JSON.stringify([
     progress.book || 'b3',
     String(progress.unit || 'all'),
+    progress.kind === 'phrase' ? 'phrase' : 'word',
+    progress.mode || 'card',
+    progress.source || '',
+    progress.wrongType || 'all',
+    progress.wrongKey || ''
+  ]);
+}
+
+function legacyProgressKey(progress = {}) {
+  return JSON.stringify([
+    progress.book || 'b3',
+    String(progress.unit || 'all'),
     progress.mode || 'card',
     progress.source || '',
     progress.wrongType || 'all',
@@ -159,20 +197,24 @@ function getSavedProgress(scope) {
   const key = progressKey(scope);
   const exact = (data.progress_positions || {})[key];
   if (exact) return exact;
+  if ((scope.kind || 'word') === 'word') {
+    const previous = (data.progress_positions || {})[legacyProgressKey(scope)];
+    if (previous) return Object.assign({ kind: 'word' }, previous);
+  }
   const legacy = data.last_progress || null;
   return legacy && progressKey(legacy) === key ? legacy : null;
 }
 
-function getProgressStats(bookId, unit = 'all') {
+function getProgressStats(bookId, unit = 'all', kind = 'word') {
   const data = loadData();
-  const scopeWords = getWordsByScope(bookId, unit);
+  const scopeWords = getItemsByScope(bookId, unit, kind);
   const keys = new Set(scopeWords.map(item => getItemKey(item)));
   const masteredCount = Object.keys(data.mastered || {}).filter(key => keys.has(key)).length;
   const wrongCount = Object.keys(data.wrongbook || {}).filter(key => keys.has(key)).length;
   const favCount = (data.favs || []).filter(item => keys.has(getItemKey(item))).length;
-  const saved = (data.progress_positions || {})[progressKey({ book: bookId, unit, mode: 'card' })];
+  const saved = getSavedProgress({ book: bookId, unit, kind, mode: 'card' });
   const legacy = data.last_progress || {};
-  const last = saved || (progressKey(legacy) === progressKey({ book: bookId, unit, mode: 'card' }) ? legacy : {});
+  const last = saved || (progressKey(legacy) === progressKey({ book: bookId, unit, kind, mode: 'card' }) ? legacy : {});
   const currentIndex = Number(last.index || 0);
   return {
     total: scopeWords.length,
@@ -188,6 +230,8 @@ module.exports = {
   defaultData,
   loadData,
   saveData,
+  getDefinitionMode,
+  setDefinitionMode,
   getUser,
   setUser,
   isFavorite,

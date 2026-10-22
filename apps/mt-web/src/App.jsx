@@ -40,6 +40,7 @@ import {
   XCircle,
 } from "lucide-react";
 import bank from "./data/question-bank.json";
+import materialFiles from "./data/material-files";
 import {
   emptyStudyState,
   exportStudyState,
@@ -65,6 +66,7 @@ const navItems = [
 ];
 
 const activeQuestions = bank.questions.filter((question) => !question.disabled);
+const HIDE_LEGACY_STORAGE_KEY = "military-theory-hide-legacy";
 
 function Brand({ compact = false }) {
   return (
@@ -100,7 +102,7 @@ function Sidebar({ view, onNavigate, collapsed, onCollapse }) {
         })}
       </nav>
       <div className="sidebar-foot">
-        <a className="study-home-link" href="https://study.dxir.net.cn/" title="返回 NaviStudy 统一学习首页">
+        <a className="study-home-link" href="https://study.example.test/" title="返回 NaviStudy 统一学习首页">
           <LayoutGrid />
           {!collapsed && (
             <div>
@@ -136,7 +138,7 @@ function Topbar({ search, setSearch, theme, toggleTheme, onNavigate, view, passp
     <header className="topbar">
       <div className="mobile-brand-row mobile-only">
         <Brand />
-        <a className="mobile-study-link" href="https://study.dxir.net.cn/" title="返回 NaviStudy">
+        <a className="mobile-study-link" href="https://study.example.test/" title="返回 NaviStudy">
           <LayoutGrid />
           <span>NaviStudy</span>
         </a>
@@ -193,12 +195,12 @@ function MetricStrip({ stats }) {
   );
 }
 
-function Dashboard({ study, onStart, passportAccount, syncState, onAccount }) {
-  const stats = getStudyStats(study);
+function Dashboard({ study, questions, hideLegacy, setHideLegacy, onStart, onMaterials, passportAccount, syncState, onAccount }) {
+  const stats = getStudyStats(study, questions);
   const [chapter, setChapter] = useState("全部章节");
   const [count, setCount] = useState(20);
   const [unpracticed, setUnpracticed] = useState(false);
-  const progress = Math.round((stats.practiced / activeQuestions.length) * 100);
+  const progress = questions.length ? Math.round((stats.practiced / questions.length) * 100) : 0;
 
   return (
     <main className="page dashboard-page">
@@ -208,7 +210,7 @@ function Dashboard({ study, onStart, passportAccount, syncState, onAccount }) {
           <p>军事理论题库与复习，把散落的资料练成一条清楚的知识线。</p>
         </div>
         <div className="progress-summary">
-          <div><span>总进度</span><strong>{stats.practiced} / {activeQuestions.length}</strong></div>
+          <div><span>总进度</span><strong>{stats.practiced} / {questions.length}</strong></div>
           <div className="progress-track" aria-label={`总进度 ${progress}%`}><span style={{ transform: `scaleX(${progress / 100})` }} /></div>
         </div>
       </section>
@@ -226,6 +228,7 @@ function Dashboard({ study, onStart, passportAccount, syncState, onAccount }) {
       <section className="source-notice">
         <Info />
         <p><strong>先看资料年代。</strong>{bank.notice}</p>
+        <button className="notice-download" type="button" onClick={onMaterials}><Download />资料下载</button>
       </section>
 
       <MetricStrip stats={stats} />
@@ -233,11 +236,18 @@ function Dashboard({ study, onStart, passportAccount, syncState, onAccount }) {
       <section className="practice-section">
         <div className="section-heading">
           <div><Target /><h2>练习模式</h2></div>
-          <label className="switch-row">
-            <span>仅练未做题</span>
-            <input type="checkbox" checked={unpracticed} onChange={(event) => setUnpracticed(event.target.checked)} />
-            <i aria-hidden="true" />
-          </label>
+          <div className="switch-group">
+            <label className="switch-row">
+              <span>仅练未做题</span>
+              <input type="checkbox" checked={unpracticed} onChange={(event) => setUnpracticed(event.target.checked)} />
+              <i aria-hidden="true" />
+            </label>
+            <label className="switch-row">
+              <span>不看历史题</span>
+              <input type="checkbox" checked={hideLegacy} onChange={(event) => setHideLegacy(event.target.checked)} />
+              <i aria-hidden="true" />
+            </label>
+          </div>
         </div>
         <div className="mode-grid">
           <article className="mode-card">
@@ -267,14 +277,14 @@ function Dashboard({ study, onStart, passportAccount, syncState, onAccount }) {
         <div className="section-heading"><div><BookOpen /><h2>章节进度</h2></div></div>
         <div className="chapter-list">
           {bank.chapters.map((item) => {
-            const questions = activeQuestions.filter((question) => question.chapter === item);
-            const completed = questions.filter((question) => study.attempts[question.id]).length;
-            const percent = questions.length ? Math.round((completed / questions.length) * 100) : 0;
+            const chapterQuestions = questions.filter((question) => question.chapter === item);
+            const completed = chapterQuestions.filter((question) => study.attempts[question.id]).length;
+            const percent = chapterQuestions.length ? Math.round((completed / chapterQuestions.length) * 100) : 0;
             return (
               <button key={item} onClick={() => onStart({ mode: "sequential", chapter: item, count: 0, unpracticed })}>
                 <span className="chapter-name">{item}</span>
                 <span className="chapter-bar"><i style={{ width: `${percent}%` }} /></span>
-                <span className="chapter-count">{completed}/{questions.length}</span>
+                <span className="chapter-count">{completed}/{chapterQuestions.length}</span>
                 <ChevronRight />
               </button>
             );
@@ -384,11 +394,13 @@ function Practice({ queue, study, setStudy, onExit, initialIndex = 0 }) {
 
   function submitAnswer() {
     if (current.type === "short") {
+      window.NaviAnalytics?.track("study_start", { product: "mt", itemId: current.id, metadata: { type: current.type } });
       setSubmitted(true);
       return;
     }
     if (!selected.length) return;
     const correct = checkAnswer(current, selected);
+    window.NaviAnalytics?.track("question_answered", { product: "mt", itemId: current.id, value: correct ? 1 : 0, metadata: { type: current.type } });
     setResult(correct);
     setSubmitted(true);
     setStudy((state) => recordAnswer(state, current.id, correct, selected));
@@ -397,10 +409,13 @@ function Practice({ queue, study, setStudy, onExit, initialIndex = 0 }) {
   function scoreShort(mastered) {
     if (result !== null) return;
     setResult(mastered);
+    window.NaviAnalytics?.track("question_answered", { product: "mt", itemId: current.id, value: mastered ? 1 : 0, metadata: { type: "short" } });
     setStudy((state) => recordAnswer(state, current.id, mastered, [mastered ? "mastered" : "review"]));
   }
 
   function toggleFavorite() {
+    const added = !study.favorites.includes(current.id);
+    window.NaviAnalytics?.track(added ? "favorite_added" : "favorite_removed", { product: "mt", itemId: current.id });
     setStudy((state) => ({ ...state, favorites: toggleInList(state.favorites, current.id) }));
   }
 
@@ -454,22 +469,31 @@ function EmptyState({ icon: Icon, title, copy, action, onAction }) {
   return <div className="empty-state"><Icon /><h2>{title}</h2><p>{copy}</p>{action && <button className="primary-button" onClick={onAction}>{action}<ArrowRight /></button>}</div>;
 }
 
-function FilterBar({ chapter, setChapter, type, setType, period, setPeriod }) {
+function FilterBar({ chapter, setChapter, type, setType, period, setPeriod, hideLegacy, setHideLegacy }) {
   return (
     <div className="filter-bar">
       <Filter />
       <label><span>章节</span><select value={chapter} onChange={(event) => setChapter(event.target.value)}><option>全部章节</option>{bank.chapters.map((item) => <option key={item}>{item}</option>)}</select></label>
       <label><span>题型</span><select value={type} onChange={(event) => setType(event.target.value)}><option value="all">全部题型</option>{Object.entries(typeNames).map(([key, value]) => <option value={key} key={key}>{value}</option>)}</select></label>
-      <label><span>年代</span><select value={period} onChange={(event) => setPeriod(event.target.value)}><option value="all">全部资料</option><option value="modern">现行重点</option><option value="legacy">历史题库</option></select></label>
+      <label><span>年代</span><select value={period} onChange={(event) => setPeriod(event.target.value)}><option value="all">{hideLegacy ? "全部现行题" : "全部资料"}</option><option value="modern">现行重点</option>{!hideLegacy && <option value="legacy">历史题库</option>}</select></label>
+      <label className="switch-row filter-switch">
+        <span>不看历史题</span>
+        <input type="checkbox" checked={hideLegacy} onChange={(event) => {
+          const checked = event.target.checked;
+          if (checked && period === "legacy") setPeriod("all");
+          setHideLegacy(checked);
+        }} />
+        <i aria-hidden="true" />
+      </label>
     </div>
   );
 }
 
-function QuestionListView({ mode, study, search, onOpenQuestion, onPractice }) {
+function QuestionListView({ mode, study, questions, hideLegacy, setHideLegacy, search, onOpenQuestion, onPractice }) {
   const [chapter, setChapter] = useState("全部章节");
   const [type, setType] = useState("all");
   const [period, setPeriod] = useState("all");
-  let base = activeQuestions;
+  let base = questions;
   if (mode === "wrong") base = base.filter((question) => study.wrong.includes(question.id));
   if (mode === "favorites") base = base.filter((question) => study.favorites.includes(question.id));
   const filtered = base.filter((question) => {
@@ -481,12 +505,12 @@ function QuestionListView({ mode, study, search, onOpenQuestion, onPractice }) {
     return true;
   });
   const title = mode === "wrong" ? "错题本" : mode === "favorites" ? "收藏夹" : "题目列表";
-  const copy = mode === "wrong" ? "答对后会自动移出错题本。" : mode === "favorites" ? "集中复习你主动标记的重点。" : `共收录 ${activeQuestions.length} 道可判分题目。`;
+  const copy = mode === "wrong" ? "答对后会自动移出错题本。" : mode === "favorites" ? "集中复习你主动标记的重点。" : `当前范围共 ${questions.length} 道可练习题目。`;
 
   return (
     <main className="page list-page">
       <section className="page-heading list-heading"><div><h1>{title}</h1><p>{copy}</p></div>{filtered.length > 0 && <button className="primary-button" onClick={() => onPractice(filtered)}><Play />练习当前结果</button>}</section>
-      <FilterBar chapter={chapter} setChapter={setChapter} type={type} setType={setType} period={period} setPeriod={setPeriod} />
+      <FilterBar chapter={chapter} setChapter={setChapter} type={type} setType={setType} period={period} setPeriod={setPeriod} hideLegacy={hideLegacy} setHideLegacy={setHideLegacy} />
       <div className="result-count">显示 {filtered.length} 道题</div>
       {filtered.length ? (
         <div className="question-list">
@@ -507,14 +531,14 @@ function QuestionListView({ mode, study, search, onOpenQuestion, onPractice }) {
   );
 }
 
-function StatsView({ study }) {
-  const stats = getStudyStats(study);
+function StatsView({ study, questions }) {
+  const stats = getStudyStats(study, questions);
   const chapterStats = bank.chapters.map((chapter) => {
-    const questions = activeQuestions.filter((question) => question.chapter === chapter);
-    const done = questions.filter((question) => study.attempts[question.id]);
+    const chapterQuestions = questions.filter((question) => question.chapter === chapter);
+    const done = chapterQuestions.filter((question) => study.attempts[question.id]);
     const attempts = done.reduce((sum, question) => sum + study.attempts[question.id].attempts, 0);
     const correct = done.reduce((sum, question) => sum + study.attempts[question.id].correct, 0);
-    return { chapter, total: questions.length, done: done.length, accuracy: attempts ? Math.round((correct / attempts) * 100) : 0 };
+    return { chapter, total: chapterQuestions.length, done: done.length, accuracy: attempts ? Math.round((correct / attempts) * 100) : 0 };
   });
   return (
     <main className="page stats-page">
@@ -543,6 +567,7 @@ function SourcesView({ study, setStudy, passportAccount, syncState, onSync, onSi
   const fileInput = useRef(null);
   const roleNames = { review: "重点整理", qa: "问答资料", reference: "参考资料", legacy: "历史试题", questions: "题库", duplicate: "重复来源" };
   const [message, setMessage] = useState("");
+  const formatSize = (bytes) => bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`;
   async function importFile(event) {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -567,14 +592,18 @@ function SourcesView({ study, setStudy, passportAccount, syncState, onSync, onSi
       <section className="page-heading"><div><h1>账号与资料</h1><p>管理 Navi Passport、本地记录与题目来源。</p></div></section>
       <section className="provenance-note"><ShieldCheck /><div><h2>校勘原则</h2><p>2023-2025 年课程资料用于建立现行复习口径；历史题库用于拓展练习。两道答案冲突题已停用，所有涉及法规、军队编制或国际形势的旧题都应以当前教材为准。</p></div></section>
       <div className="source-table">
-        <div className="source-head"><span>资料</span><span>年代</span><span>用途</span></div>
-        {bank.sources.map((source) => (
-          <div className="source-row" key={source.id}>
-            <div><FileArchive /><span><strong>{source.name}</strong><small>{source.note}</small></span></div>
-            <span>{source.period}</span>
-            <span className={`role-tag role-${source.role}`}>{roleNames[source.role]}</span>
-          </div>
-        ))}
+        <div className="source-head"><span>资料</span><span>年代</span><span>用途</span><span>文件</span></div>
+        {bank.sources.map((source) => {
+          const material = materialFiles[source.id];
+          return (
+            <div className="source-row" key={source.id}>
+              <div><FileArchive /><span><strong>{source.name}</strong><small>{source.note} · {material.type.toUpperCase()} · {formatSize(material.size)}</small></span></div>
+              <span>{source.period}</span>
+              <span className={`role-tag role-${source.role}`}>{roleNames[source.role]}</span>
+              <a className="material-download" href={`${import.meta.env.BASE_URL}downloads/${material.file}`} download={source.name}><Download />下载</a>
+            </div>
+          );
+        })}
       </div>
       <section className="passport-tools">
         <div className="passport-heading">
@@ -605,6 +634,7 @@ export default function App() {
   const [study, setStudy] = useState(loadStudyState);
   const [search, setSearch] = useState("");
   const [theme, setTheme] = useState(() => localStorage.getItem("military-theory-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+  const [hideLegacy, setHideLegacy] = useState(() => localStorage.getItem(HIDE_LEGACY_STORAGE_KEY) === "true");
   const [collapsed, setCollapsed] = useState(false);
   const [practiceQueue, setPracticeQueue] = useState([]);
   const [passportAccount, setPassportAccount] = useState(null);
@@ -617,9 +647,14 @@ export default function App() {
     onAccount: setPassportAccount,
     onStatus: (value, label) => setSyncState({ value, label }),
   }), []);
+  const availableQuestions = useMemo(
+    () => hideLegacy ? activeQuestions.filter((question) => !question.legacy) : activeQuestions,
+    [hideLegacy]
+  );
 
   useEffect(() => { saveStudyState(study); passportSync.markDirty(); }, [study, passportSync]);
   useEffect(() => { passportSync.initialize(); }, [passportSync]);
+  useEffect(() => { localStorage.setItem(HIDE_LEGACY_STORAGE_KEY, String(hideLegacy)); }, [hideLegacy]);
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     localStorage.setItem("military-theory-theme", theme);
@@ -638,7 +673,7 @@ export default function App() {
   }
 
   function startPractice(config) {
-    let pool = activeQuestions;
+    let pool = availableQuestions;
     if (config.mode === "wrong") pool = pool.filter((question) => study.wrong.includes(question.id));
     if (config.mode === "favorites") pool = pool.filter((question) => study.favorites.includes(question.id));
     if (config.chapter && config.chapter !== "全部章节") pool = pool.filter((question) => question.chapter === config.chapter);
@@ -646,23 +681,25 @@ export default function App() {
     if (config.mode === "random") pool = shuffle(pool);
     if (config.count) pool = pool.slice(0, config.count);
     setPracticeQueue(pool);
+    window.NaviAnalytics?.track("study_start", { product: "mt", metadata: { mode: config.mode, count: pool.length } });
     setView("practice");
     window.scrollTo({ top: 0 });
   }
 
   function startWithQuestions(questions) {
     setPracticeQueue(questions);
+    window.NaviAnalytics?.track("study_start", { product: "mt", metadata: { mode: "selection", count: questions.length } });
     setView("practice");
     window.scrollTo({ top: 0 });
   }
 
-  const searchedQuestions = useMemo(() => activeQuestions.filter((question) => matchesQuery(question, search)), [search]);
+  const searchedQuestions = useMemo(() => availableQuestions.filter((question) => matchesQuery(question, search)), [availableQuestions, search]);
 
   let content;
   if (view === "practice") content = <Practice queue={practiceQueue} study={study} setStudy={setStudy} onExit={() => navigate("dashboard")} />;
-  else if (view === "dashboard") content = <Dashboard study={study} onStart={startPractice} passportAccount={passportAccount} syncState={syncState} onAccount={() => passportAccount ? navigate("sources") : startPassportLogin()} />;
-  else if (["library", "wrong", "favorites"].includes(view)) content = <QuestionListView mode={view} study={study} search={search} onOpenQuestion={(question) => startWithQuestions([question])} onPractice={startWithQuestions} />;
-  else if (view === "stats") content = <StatsView study={study} />;
+  else if (view === "dashboard") content = <Dashboard study={study} questions={availableQuestions} hideLegacy={hideLegacy} setHideLegacy={setHideLegacy} onStart={startPractice} onMaterials={() => navigate("sources")} passportAccount={passportAccount} syncState={syncState} onAccount={() => passportAccount ? navigate("sources") : startPassportLogin()} />;
+  else if (["library", "wrong", "favorites"].includes(view)) content = <QuestionListView mode={view} study={study} questions={availableQuestions} hideLegacy={hideLegacy} setHideLegacy={setHideLegacy} search={search} onOpenQuestion={(question) => startWithQuestions([question])} onPractice={startWithQuestions} />;
+  else if (view === "stats") content = <StatsView study={study} questions={availableQuestions} />;
   else content = <SourcesView study={study} setStudy={setStudy} passportAccount={passportAccount} syncState={syncState} onSync={passportSync.flush} onSignOut={passportSync.signOut} />;
 
   return (

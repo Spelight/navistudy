@@ -21,3 +21,75 @@ button::after {
   border: none;
 }
 
+.theme-light.page {
+  background: #eef4fb !important;
+  color: #16202a !important;
+}
+
+.theme-light .panel,
+.theme-light .card-panel,
+.theme-light .quiz-panel,
+.theme-light .scope-panel,
+.theme-light .unit-card,
+.theme-light .mode-card,
+.theme-light .mode-primary,
+.theme-light .row,
+.theme-light .list-row,
+.theme-light .empty {
+  border-color: #d4deea !important;
+  background: #ffffff !important;
+  color: #16202a !important;
+  box-shadow: 0 12rpx 28rpx rgba(31, 48, 72, 0.08) !important;
+}
+
+.theme-light .appbar,
+.theme-light .module-tabbar {
+  border-color: #d2dce8 !important;
+  background: #f8fbff !important;
+}
+
+.theme-light .nav-title,
+.theme-light .appbar-title,
+.theme-light .book-name,
+.theme-light .unit-title,
+.theme-light .section-title,
+.theme-light .panel-title,
+.theme-light .mode-title,
+.theme-light .resume-title,
+.theme-light .word,
+.theme-light .quiz-q,
+.theme-light .spell-def,
+.theme-light strong {
+  color: #16202a !important;
+}
+
+.theme-light .muted,
+.theme-light .appbar-sub,
+.theme-light .book-meta,
+.theme-light .unit-desc,
+.theme-light .mode-desc,
+.theme-light .scope-meta,
+.theme-light .resume-meta,
+.theme-light .phonetic,
+.theme-light .quiz-sub,
+.theme-light .en {
+  color: #5f6f82 !important;
+}
+
+.theme-light .input,
+.theme-light input,
+.theme-light textarea,
+.theme-light .option,
+.theme-light .chapter-picker,
+.theme-light .unit-picker {
+  border-color: #cbd7e5 !important;
+  background: #f8fbff !important;
+  color: #16202a !important;
+}
+
+.theme-light .mode-tabs,
+.theme-light .definition-switch,
+.theme-light .content-kind-switch,
+.theme-light .definition-row {
+  background: #e3ebf5 !important;
+}

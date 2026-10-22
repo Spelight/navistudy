@@ -45,7 +45,7 @@
       <view class="tool-icon web-icon"></view>
       <view class="tool-copy">
         <text class="tool-title">PC 网页版</text>
-        <text class="tool-desc">复制 study.dxir.net.cn/words/ 链接</text>
+        <text class="tool-desc">复制 study.example.test/words/ 链接</text>
       </view>
       <text class="tool-arrow">></text>
     </view>
@@ -98,7 +98,7 @@
     </view>
     <view class="about-row">
       <text>网页</text>
-      <text class="muted">words.dxir.net.cn</text>
+      <text class="muted">words.example.test</text>
     </view>
     <view class="about-row">
       <text>作者</text>

@@ -1,7 +1,7 @@
 App({
   globalData: {
-    apiBase: 'https://words.dxir.net.cn',
-    version: '0.2.1',
+    apiBase: 'https://words.example.test',
+    version: '0.3.0',
     user: ''
   },
 

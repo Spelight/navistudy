@@ -4,7 +4,8 @@
     "pages/bank/bank",
     "pages/me/me",
     "pages/practice/practice",
-    "pages/wrong/wrong"
+    "pages/wrong/wrong",
+    "pages/materials/materials"
   ],
   "window": {
     "navigationBarTitleText": "NaviMT 军理通",

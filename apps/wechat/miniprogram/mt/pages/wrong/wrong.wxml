@@ -1,4 +1,4 @@
-<view class="page wrong-page">
+<view class="page theme-{{naviTheme}} wrong-page">
   <view class="top-title">错题本</view>
   <view class="wrong-sub">答对后会自动移出，仍可在题库查看历史状态。</view>
 
@@ -6,6 +6,14 @@
     <view class="stat-item"><text class="stat-num">{{total}}</text><text class="stat-label">待复习题</text></view>
     <view class="stat-item"><text class="stat-num">{{totalAttempts}}</text><text class="stat-label">累计错次</text></view>
   </view>
+
+  <label class="history-filter panel">
+    <view>
+      <text class="history-title">不看历史题</text>
+      <text class="history-desc">只显示当前资料中的错题</text>
+    </view>
+    <switch checked="{{hideLegacy}}" color="#2c7be5" bindchange="changeHideLegacy" />
+  </label>
 
   <scroll-view class="filter-scroll" scroll-x enhanced show-scrollbar="false">
     <view class="filter-row">
@@ -32,4 +40,3 @@
     <button class="remove-btn" data-id="{{item.id}}" catchtap="removeOne">移出</button>
   </view>
 </view>
-

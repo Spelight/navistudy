@@ -1,4 +1,4 @@
-<view class="page me-page">
+<view class="page theme-{{naviTheme}} me-page">
   <view class="appbar"><view class="nav-title">我的</view></view>
 
   <view class="profile panel">
@@ -34,7 +34,8 @@
   </view>
 
   <view class="tool-list panel">
-    <view class="tool-row" bindtap="copyWeb"><view class="tool-mark web"></view><view class="tool-copy"><text class="tool-title">PC 网页版</text><text class="tool-desc">复制 study.dxir.net.cn/mt/ 链接</text></view><view class="tool-arrow"></view></view>
+    <view class="tool-row" bindtap="goMaterials"><view class="tool-mark materials"></view><view class="tool-copy"><text class="tool-title">参考资料下载</text><text class="tool-desc">浏览并下载全部 19 份原始资料</text></view><view class="tool-arrow"></view></view>
+    <view class="tool-row" bindtap="copyWeb"><view class="tool-mark web"></view><view class="tool-copy"><text class="tool-title">PC 网页版</text><text class="tool-desc">复制 study.example.test/mt/ 链接</text></view><view class="tool-arrow"></view></view>
     <view class="tool-row" bindtap="exportData"><view class="tool-mark export"></view><view class="tool-copy"><text class="tool-title">导出学习数据</text><text class="tool-desc">复制作答、错题、收藏和进度</text></view><view class="tool-arrow"></view></view>
     <view class="tool-row" bindtap="importData"><view class="tool-mark import"></view><view class="tool-copy"><text class="tool-title">导入学习数据</text><text class="tool-desc">从剪贴板恢复本机记录</text></view><view class="tool-arrow"></view></view>
     <view class="tool-row" bindtap="shareApp"><view class="tool-mark share"></view><view class="tool-copy"><text class="tool-title">分享给同学</text><text class="tool-desc">打开微信分享入口</text></view><view class="tool-arrow"></view></view>
@@ -44,7 +45,7 @@
 
   <view class="about panel">
     <view class="about-row"><text>题库规模</text><text class="muted">{{total}} 题 · {{sourceCount}} 份资料</text></view>
-    <view class="about-row"><text>历史题目</text><text class="muted">{{legacyCount}} 题</text></view>
+    <view class="about-row"><text>历史题目</text><text class="muted">{{legacySummary}}</text></view>
     <view class="about-row"><text>版本</text><text class="muted">{{version}}</text></view>
     <view class="about-row"><text>作者</text><text class="muted">Dxir</text></view>
   </view>

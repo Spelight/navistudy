@@ -5,12 +5,36 @@ function getItemKey(item) {
   return item.key || `${item.t || 'w'}_${item.w || item.e || ''}_${item.u || ''}`;
 }
 
-function wordOnly(list) {
-  return list.filter(item => item && item.t === 'w' && item.w);
+function normalizeKind(kind) {
+  return kind === 'phrase' ? 'phrase' : 'word';
+}
+
+function itemKind(item) {
+  return item && item.t === 'trans' ? 'phrase' : 'word';
+}
+
+function normalizeItem(item) {
+  const source = item || {};
+  const kind = itemKind(source);
+  return Object.assign({}, source, {
+    kind,
+    term: source.w || '',
+    definitionEn: kind === 'word' ? String(source.e || '') : '',
+    definitionZh: kind === 'phrase' ? String(source.e || '') : String(source.c || '')
+  });
+}
+
+function itemsOnly(list, kind) {
+  const normalizedKind = normalizeKind(kind);
+  return list.filter(item => item && item.w && itemKind(item) === normalizedKind);
 }
 
 function getAllWords() {
-  return wordOnly(words);
+  return itemsOnly(words, 'word');
+}
+
+function getAllPhrases() {
+  return itemsOnly(words, 'phrase');
 }
 
 function getBookById(bookId) {
@@ -23,19 +47,27 @@ function getBookIdByUnit(unit) {
   return book ? book.id : '';
 }
 
-function getWordsByScope(bookId, unit) {
+function getItemsByScope(bookId, unit, kind = 'word') {
   const book = getBookById(bookId);
   const allowed = new Set(book.units);
   let list = words.filter(item => allowed.has(Number(item.u)));
   if (unit && unit !== 'all') {
     list = list.filter(item => Number(item.u) === Number(unit));
   }
-  return wordOnly(list);
+  return itemsOnly(list, kind);
 }
 
-function searchWords(query, bookId) {
+function getWordsByScope(bookId, unit) {
+  return getItemsByScope(bookId, unit, 'word');
+}
+
+function getPhrasesByScope(bookId, unit) {
+  return getItemsByScope(bookId, unit, 'phrase');
+}
+
+function searchWords(query, bookId, kind = 'word') {
   const q = String(query || '').trim().toLowerCase();
-  const source = bookId ? getWordsByScope(bookId, 'all') : wordOnly(words);
+  const source = bookId ? getItemsByScope(bookId, 'all', kind) : itemsOnly(words, kind);
   if (!q) return source.slice(0, 80);
   return source.filter(item =>
     String(item.w || '').toLowerCase().includes(q) ||
@@ -62,16 +94,17 @@ function bookStats() {
   const order = ['b5', 'b4', 'b3', 'dual'];
   return books.slice().sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id)).map(book => {
     const list = getWordsByScope(book.id, 'all');
-    return {
-      ...book,
+    const phrases = getPhrasesByScope(book.id, 'all');
+    return Object.assign({}, book, {
       count: list.length,
+      phraseCount: phrases.length,
       unitText: book.units.map(unit => unitShortLabel(unit).replace(/^B\d\s/, '')).join(' / '),
       unitOptions: book.units.map(unit => ({
         unit,
         label: unitShortLabel(unit).replace(/^B\d\s/, ''),
         count: getWordsByScope(book.id, unit).length
       }))
-    };
+    });
   });
 }
 
@@ -80,10 +113,15 @@ module.exports = {
   books,
   unitLabels,
   getItemKey,
+  itemKind,
+  normalizeItem,
   getAllWords,
+  getAllPhrases,
   getBookById,
   getBookIdByUnit,
   getWordsByScope,
+  getPhrasesByScope,
+  getItemsByScope,
   searchWords,
   shuffle,
   unitShortLabel,

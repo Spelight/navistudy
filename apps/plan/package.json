@@ -1,0 +1,11 @@
+{
+  "name": "naviplan",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "test": "npm --prefix frontend run test -- --run",
+    "backend:run": "gradle -p backend run",
+    "backend:test": "gradle -p backend test"
+  }
+}

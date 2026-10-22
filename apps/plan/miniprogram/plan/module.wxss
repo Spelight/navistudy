@@ -1,0 +1,46 @@
+page { min-height: 100%; background: #f3f6f2; color: #17251e; }
+.page { min-height: 100vh; padding: 28rpx 28rpx calc(148rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+.appbar { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; margin-bottom: 28rpx; }
+.appbar-title { font-size: 38rpx; font-weight: 900; }
+.appbar-sub { margin-top: 5rpx; color: #65736c; font-size: 22rpx; }
+.top-button,.primary-btn,.secondary-btn { min-height: 76rpx; padding: 0 24rpx; border-radius: 12rpx; display: flex; align-items: center; justify-content: center; font-size: 25rpx; font-weight: 800; }
+.top-button,.secondary-btn { background: #fff; color: #244c3a; border: 1rpx solid #d8e1dc; }
+.primary-btn { background: #174d38; color: #fff; }
+button::after { border: 0; }
+.hero { padding: 30rpx; border-radius: 16rpx; background: #173f31; color: #fff; }
+.hero-label { color: #a8d6bf; font-size: 22rpx; }
+.hero-value { margin-top: 12rpx; font-size: 62rpx; font-weight: 900; font-variant-numeric: tabular-nums; }
+.hero-value text { font-size: 25rpx; font-weight: 750; color: #d7e9e0; }
+.hero-copy { margin-top: 12rpx; color: #d7e9e0; font-size: 24rpx; line-height: 1.6; }
+.hero-copy text { display: block; }
+.progress { height: 12rpx; margin-top: 24rpx; border-radius: 8rpx; background: #315b4a; overflow: hidden; }
+.progress view { height: 100%; background: #d6a93d; }
+.metric-grid { margin-top: 20rpx; display: grid; grid-template-columns: repeat(3,1fr); gap: 12rpx; }
+.metric { padding: 20rpx 12rpx; border-radius: 12rpx; background: #fff; text-align: center; }
+.metric .strong { display: block; font-size: 32rpx; }
+.metric text { display: block; margin-top: 6rpx; color: #6a766f; font-size: 20rpx; }
+.section-title { margin: 34rpx 0 16rpx; font-size: 30rpx; font-weight: 900; }
+.section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 20rpx; }
+.section-heading > text { color: #65736c; font-size: 22rpx; font-weight: 800; }
+.panel { padding: 22rpx; border-radius: 14rpx; background: #fff; border: 1rpx solid #dce4df; }
+.list { display: grid; gap: 12rpx; }
+.row { width: 100%; min-width: 0; padding: 20rpx; border-radius: 12rpx; background: #fff; border: 1rpx solid #dce4df; text-align: left; }
+.row .strong,.row text { display: block; }
+.row .strong { font-size: 27rpx; font-weight: 800; }
+.row text { margin-top: 8rpx; color: #65736c; font-size: 22rpx; line-height: 1.5; }
+.row .advice { color: #174d38; font-weight: 750; }
+.tag { display: inline-flex; width: fit-content; margin-bottom: 10rpx; padding: 5rpx 10rpx; border-radius: 999rpx; background: #e4f1ea; color: #174d38; font-size: 19rpx; font-weight: 800; }
+.warning { background: #fff6df; color: #7c5600; }
+.empty { padding: 48rpx 24rpx; color: #6a766f; text-align: center; line-height: 1.6; }
+.field { display: block; margin-top: 22rpx; color: #46554d; font-size: 22rpx; font-weight: 800; }
+.input,.textarea,.picker { width: 100%; min-height: 82rpx; margin-top: 9rpx; padding: 0 20rpx; box-sizing: border-box; border: 1rpx solid #ced9d3; border-radius: 10rpx; background: #fff; color: #17251e; font-size: 26rpx; }
+.textarea { min-height: 150rpx; padding-top: 18rpx; }
+.captcha { width: 260rpx; margin-top: 12rpx; border: 1rpx solid #d8e1dc; }
+.notice { margin-top: 18rpx; padding: 18rpx; border-radius: 10rpx; background: #e8f0fa; color: #2b4c70; font-size: 22rpx; line-height: 1.55; }
+.actions { margin-top: 22rpx; display: grid; grid-template-columns: repeat(2,1fr); gap: 12rpx; }
+.full-list-button { width: 100%; margin-top: 20rpx; }
+.course-search { box-sizing: border-box; width: 100%; height: 84rpx; margin: 0 0 22rpx; padding: 0 24rpx; border: 1rpx solid #ced9d3; border-radius: 10rpx; background: #fff; }
+.module-tabbar { position: fixed; z-index: 50; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(5,1fr); padding: 10rpx 8rpx calc(10rpx + env(safe-area-inset-bottom)); background: #fff; border-top: 1rpx solid #dce4df; }
+.module-tab { min-height: 86rpx; display: flex; align-items: center; justify-content: center; color: #748078; font-size: 20rpx; }
+.module-tab.active { color: #174d38; font-weight: 900; }
+.module-home { color: #315f8c; }

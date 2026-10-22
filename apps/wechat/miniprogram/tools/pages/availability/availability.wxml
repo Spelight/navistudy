@@ -1,0 +1,13 @@
+<view class="page theme-{{naviTheme}}"><view class="appbar"><view><view class="appbar-title">{{id ? '编辑问卷' : '创建问卷'}}</view><view class="appbar-sub">设置填写窗口与需要选择的日期段</view></view></view><view class="panel">
+  <label class="field">问卷标题<input class="input" data-key="title" value="{{form.title}}" bindinput="changeText" maxlength="80"/></label>
+  <label class="field">分组说明<input class="input" data-key="termLabel" value="{{form.termLabel}}" bindinput="changeText" maxlength="80"/></label>
+  <label class="field">活动说明<input class="input" data-key="weekLabel" value="{{form.weekLabel}}" bindinput="changeText" maxlength="80"/></label>
+  <checkbox-group bindchange="changeRequired"><label class="check"><checkbox value="required" checked="{{form.nameRequired}}" color="#176f69"/>填写人必须留下姓名</label></checkbox-group>
+  <label class="field">开放日期<picker class="picker" mode="date" data-key="opensDate" value="{{form.opensDate}}" bindchange="changeValue">{{form.opensDate}}</picker></label>
+  <label class="field">开放时间<picker class="picker" mode="time" data-key="opensTime" value="{{form.opensTime}}" bindchange="changeValue">{{form.opensTime}}</picker></label>
+  <label class="field">截止日期<picker class="picker" mode="date" data-key="closesDate" value="{{form.closesDate}}" bindchange="changeValue">{{form.closesDate}}</picker></label>
+  <label class="field">截止时间<picker class="picker" mode="time" data-key="closesTime" value="{{form.closesTime}}" bindchange="changeValue">{{form.closesTime}}</picker></label>
+  <label class="field">日期段开始<picker class="picker" mode="date" data-key="dateStart" value="{{form.dateStart}}" bindchange="changeValue">{{form.dateStart}}</picker></label>
+  <label class="field">日期段结束<picker class="picker" mode="date" data-key="dateEnd" value="{{form.dateEnd}}" bindchange="changeValue">{{form.dateEnd}}</picker></label>
+  <view class="notice">日期段最多连续 31 天。问卷到期后自动删除，填写记录不会继续保留。</view><view wx:if="{{error}}" class="error">{{error}}</view><button class="primary-btn" style="margin-top:24rpx" bindtap="save" loading="{{loading}}" disabled="{{loading}}">{{id ? '保存设置' : '创建并生成分享链接'}}</button>
+</view></view>

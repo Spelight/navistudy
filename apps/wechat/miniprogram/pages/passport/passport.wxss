@@ -1,8 +1,10 @@
 page { background: #f2f3f5; color: #17202a; }
-.passport-page { min-height: 100vh; padding: 38rpx 30rpx calc(80rpx + env(safe-area-inset-bottom)); box-sizing: border-box; }
+button { display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.2; }
+.passport-page { width: 100%; min-width: 0; min-height: 100vh; padding: 38rpx 30rpx calc(80rpx + env(safe-area-inset-bottom)); box-sizing: border-box; overflow-x: hidden; }
 .passport-brand { display: flex; align-items: center; gap: 22rpx; margin: 16rpx 4rpx 38rpx; }
+.brand-copy { flex: 1; min-width: 0; }
 .brand-copy text { display: block; }
-.title { font-size: 42rpx; line-height: 1.15; font-weight: 900; }
+.title { font-size: 42rpx; line-height: 1.15; font-weight: 900; word-break: break-word; }
 .subtitle { margin-top: 7rpx; color: #6b7480; font-size: 23rpx; }
 .key-mark { width: 72rpx; height: 72rpx; display: flex; flex: none; align-items: center; justify-content: center; border-radius: 12rpx; background: #1759a8; }
 .key-mark view { width: 25rpx; height: 25rpx; border: 5rpx solid #fff; border-radius: 50%; position: relative; }
@@ -10,39 +12,49 @@ page { background: #f2f3f5; color: #17202a; }
 .auth-surface, .account-surface, .recovery-stage { overflow: hidden; border: 1rpx solid #d9dde2; border-radius: 12rpx; background: #fff; box-shadow: 0 12rpx 34rpx rgba(25, 39, 55, .07); }
 .auth-surface { padding-bottom: 30rpx; }
 .tabs { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1rpx solid #e0e3e7; }
-.tabs button { height: 82rpx; margin: 0; padding: 0; border-radius: 0; color: #707985; background: transparent; font-size: 25rpx; }
+.tabs button { height: 88rpx; margin: 0; padding: 0; border-radius: 0; color: #707985; background: transparent; font-size: 25rpx; }
 .tabs button::after, .field-label button::after, .text-button::after { border: 0; }
 .tabs .active { color: #1759a8; font-weight: 800; box-shadow: inset 0 -5rpx #1759a8; }
 .auth-heading { padding: 30rpx 30rpx 4rpx; }
 .auth-heading text { display: block; }
 .auth-heading text:first-child { font-size: 32rpx; font-weight: 900; }
 .auth-heading text:last-child { margin-top: 8rpx; color: #6b7480; font-size: 23rpx; line-height: 1.55; }
+.legacy-notice { margin: 22rpx 30rpx 0; padding: 18rpx 19rpx; border-radius: 8rpx; color: #24486f; background: #edf5ff; font-size: 23rpx; line-height: 1.55; }
+.legacy-notice button { width: 100%; min-height: 72rpx; margin: 14rpx 0 0; padding: 0 16rpx; border: 1rpx solid #9fbadb; border-radius: 7rpx; color: #1759a8; background: #fff; font-size: 23rpx; font-weight: 800; }
+.legacy-notice button::after { border: 0; }
 label { display: block; margin: 25rpx 30rpx 0; }
 label > text, .field-label > text { display: block; margin-bottom: 11rpx; font-size: 23rpx; font-weight: 800; }
-input { height: 82rpx; padding: 0 19rpx; border: 1rpx solid #cfd5dc; border-radius: 8rpx; background: #f7f8f9; box-sizing: border-box; font-size: 27rpx; }
+input { width: 100%; height: 82rpx; padding: 0 19rpx; border: 1rpx solid #cfd5dc; border-radius: 8rpx; background: #f7f8f9; box-sizing: border-box; font-size: 27rpx; }
 input:focus { border-color: #1759a8; background: #fff; }
 .field-label { display: flex; align-items: center; justify-content: space-between; }
 .field-label button { width: auto; min-height: 0; margin: 0 2rpx 10rpx 0; padding: 4rpx 8rpx; color: #1759a8; background: transparent; font-size: 22rpx; line-height: 1.2; }
-button.primary { width: calc(100% - 60rpx); height: 86rpx; margin: 30rpx 30rpx 0; padding: 0 20rpx; box-sizing: border-box; border-radius: 8rpx; color: #fff; background: #1759a8; font-size: 27rpx; font-weight: 800; }
+button.primary { width: calc(100% - 60rpx); height: 88rpx; margin: 30rpx 30rpx 0; padding: 0 20rpx; box-sizing: border-box; border-radius: 8rpx; color: #fff; background: #1759a8; font-size: 27rpx; font-weight: 800; }
 button.primary::after { border: 0; }
 button[disabled] { opacity: .48; }
 .error { margin: 22rpx 30rpx 0; padding: 17rpx 19rpx; border-left: 5rpx solid #b6382f; color: #8f2c26; background: #fff0ef; font-size: 23rpx; line-height: 1.5; }
 .account-surface { padding: 30rpx; }
 .account-head { display: grid; grid-template-columns: 82rpx minmax(0, 1fr) auto; align-items: center; gap: 18rpx; padding-bottom: 28rpx; }
+.account-copy { min-width: 0; }
 .avatar { width: 82rpx; height: 82rpx; display: flex; align-items: center; justify-content: center; border-radius: 10rpx; color: #fff; background: #1759a8; font-size: 32rpx; font-weight: 900; }
-.account-copy text { display: block; font-size: 30rpx; font-weight: 900; }
+.account-copy text { display: block; font-size: 30rpx; font-weight: 900; word-break: break-word; }
 .account-copy text + text { margin-top: 6rpx; color: #6b7480; font-size: 22rpx; font-weight: 400; }
 .connected-dot { width: 15rpx; height: 15rpx; border-radius: 50%; background: #15966b; }
 .sync-list { border-top: 1rpx solid #e0e3e7; border-bottom: 1rpx solid #e0e3e7; }
 .sync-row { min-height: 92rpx; display: flex; align-items: center; justify-content: space-between; gap: 22rpx; border-bottom: 1rpx solid #e8eaed; }
 .sync-row:last-child { border-bottom: 0; }
-.sync-row view { min-width: 0; }
-.sync-row view text { display: block; font-size: 25rpx; font-weight: 800; }
-.sync-row view text + text { margin-top: 4rpx; color: #747d87; font-size: 20rpx; font-weight: 400; }
-.sync-value { flex: none; color: #167457; font-size: 22rpx; font-weight: 800; }
+.sync-copy { min-width: 0; flex: 1; }
+.sync-copy text { display: block; font-size: 25rpx; font-weight: 800; }
+.sync-copy text + text { margin-top: 4rpx; color: #747d87; font-size: 20rpx; line-height: 1.4; font-weight: 400; }
+.sync-state { flex: none; max-width: 38%; display: flex; flex-direction: column; align-items: flex-end; gap: 7rpx; }
+.sync-state button { min-width: 88rpx; min-height: 48rpx; margin: 0; padding: 0 12rpx; border-radius: 7rpx; background: #edf5ff; color: #1759a8; font-size: 20rpx; font-weight: 800; }
+.sync-state button::after { border: 0; }
+.sync-value { flex: none; color: #167457; font-size: 22rpx; line-height: 1.4; font-weight: 800; text-align: right; word-break: break-word; }
+.sync-time { color: #7a838d; font-size: 18rpx; line-height: 1.3; white-space: nowrap; }
+.state-offline .sync-value, .state-attention .sync-value { color: #a55a13; }
+.state-disabled .sync-value { color: #747d87; }
 .account-actions { display: grid; gap: 12rpx; padding-top: 28rpx; }
 .account-actions .primary { width: 100%; margin: 0; }
-.logout-button { width: 100%; height: 72rpx; margin: 0; padding: 0 20rpx; box-sizing: border-box; color: #9a342d; border: 1rpx solid #e0c2bf; border-radius: 8rpx; background: #fff; font-size: 23rpx; font-weight: 700; }
+.logout-button { width: 100%; height: 88rpx; margin: 0; padding: 0 20rpx; box-sizing: border-box; color: #9a342d; border: 1rpx solid #e0c2bf; border-radius: 8rpx; background: #fff; font-size: 23rpx; font-weight: 700; }
 .logout-button::after { border: 0; }
 .text-button { min-height: 66rpx; margin: 12rpx 0 0; color: #5f6974; background: transparent; font-size: 23rpx; }
 .text-button.danger { color: #a1362f; }
@@ -51,7 +63,30 @@ button[disabled] { opacity: .48; }
 .stage-title, .stage-help, .recovery-code { display: block; }
 .stage-title { margin-top: 19rpx; font-size: 34rpx; font-weight: 900; }
 .stage-help { margin-top: 9rpx; color: #68717a; font-size: 24rpx; line-height: 1.65; }
+.inheritance-message { margin-top: 20rpx; padding: 18rpx; border-radius: 8rpx; color: #12664d; background: #eaf8f2; font-size: 23rpx; line-height: 1.55; }
 .recovery-code { margin-top: 24rpx; padding: 24rpx 18rpx; border: 1rpx dashed #98701d; border-radius: 8rpx; background: #fffaf0; text-align: center; word-break: break-all; font-size: 27rpx; font-weight: 800; }
 .recovery-stage .primary { margin-left: 0; margin-right: 0; background: #805400; }
 .boundary { margin-top: 34rpx; padding: 24rpx 4rpx; border-top: 1rpx solid #d5d9de; color: #737c87; }
 .boundary text { display: block; font-size: 22rpx; line-height: 1.7; }
+
+.theme-dark.passport-page { background: #050608; color: #f6f7fb; }
+.theme-dark .passport-brand .subtitle,
+.theme-dark .account-copy text + text,
+.theme-dark .sync-copy text + text,
+.theme-dark .stage-help,
+.theme-dark .boundary { color: #969eaa; }
+.theme-dark .auth-surface,
+.theme-dark .account-surface,
+.theme-dark .recovery-stage { border-color: #2c3037; background: #15171b; box-shadow: 0 18rpx 44rpx rgba(0, 0, 0, .28); }
+.theme-dark .tabs { border-bottom-color: #30343b; }
+.theme-dark .tabs button { color: #969eaa; }
+.theme-dark .tabs .active { color: #79b1ff; box-shadow: inset 0 -5rpx #2c7be5; }
+.theme-dark input { border-color: #373c45; background: #202329; color: #f6f7fb; }
+.theme-dark .sync-list { border-color: #30343b; }
+.theme-dark .sync-row { border-bottom-color: #292d34; }
+.theme-dark .sync-time { color: #7f8792; }
+.theme-dark .state-offline .sync-value,
+.theme-dark .state-attention .sync-value { color: #ffb25f; }
+.theme-dark .state-disabled .sync-value { color: #969eaa; }
+.theme-dark .logout-button { border-color: #5a3434; background: #1d1819; color: #ff9b94; }
+.theme-dark .boundary { border-top-color: #30343b; }

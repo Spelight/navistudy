@@ -12,6 +12,14 @@
     <view class="summary-progress">已作答 {{stats.answered}}</view>
   </view>
 
+  <label class="history-filter panel">
+    <view>
+      <text class="history-title">不看历史题</text>
+      <text class="history-desc">开启后，题库、练习、错题和收藏统一排除历史题</text>
+    </view>
+    <switch checked="{{hideLegacy}}" color="#2c7be5" bindchange="changeHideLegacy" />
+  </label>
+
   <scroll-view class="filter-scroll" scroll-x enhanced show-scrollbar="false">
     <view class="filter-row">
       <button wx:for="{{chapters}}" wx:key="id" class="filter-chip {{activeChapter===item.id?'active':''}}" data-chapter="{{item.id}}" bindtap="selectChapter">{{item.title}}</button>
@@ -46,4 +54,3 @@
   <button wx:if="{{hasMore}}" class="load-more" bindtap="loadMore">再显示 40 题</button>
   <view wx:if="{{rows.length && !hasMore}}" class="list-end">已显示全部 {{total}} 道题</view>
 </view>
-

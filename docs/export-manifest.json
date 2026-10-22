@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-22",
+  "mode": "source-only-public-export",
+  "files": 444,
+  "excluded": [
+    "private history",
+    "operations runbooks",
+    "deployment scripts",
+    "textbook pages and text",
+    "course datasets",
+    "user data",
+    "production credentials"
+  ],
+  "production": false
+}

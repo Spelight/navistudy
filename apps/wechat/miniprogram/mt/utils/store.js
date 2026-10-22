@@ -3,6 +3,7 @@ const questions = require('./questions');
 const DATA_KEY = 'military_theory_learning_v1';
 const USER_KEY = 'navi_passport_user';
 const LEGACY_USER_KEY = 'words_user';
+const HIDE_LEGACY_KEY = 'military_hide_legacy';
 
 function defaultData() {
   return {
@@ -22,7 +23,12 @@ function loadData() {
 }
 
 function saveData(data) {
-  wx.setStorageSync(DATA_KEY, Object.assign(defaultData(), data || {}));
+  const next = Object.assign(defaultData(), data || {});
+  wx.setStorageSync(DATA_KEY, next);
+  try {
+    const app = getApp();
+    if (app && typeof app.queueSync === 'function') app.queueSync('mt', next);
+  } catch (error) {}
 }
 
 function getUser() {
@@ -42,14 +48,26 @@ function setUser(user) {
   return clean;
 }
 
+function getHideLegacy() {
+  return wx.getStorageSync(HIDE_LEGACY_KEY) === true;
+}
+
+function setHideLegacy(value) {
+  const enabled = value === true;
+  wx.setStorageSync(HIDE_LEGACY_KEY, enabled);
+  return enabled;
+}
+
 function scopeKey(scope = {}) {
-  return JSON.stringify([
+  const parts = [
     scope.chapter || 'all',
     scope.type || 'all',
     scope.order || 'sequential',
     scope.source || '',
     scope.questionId || ''
-  ]);
+  ];
+  if (scope.hideLegacy) parts.push('hide-legacy');
+  return JSON.stringify(parts);
 }
 
 function saveProgress(progress) {
@@ -155,11 +173,14 @@ function getStats(filters = {}) {
 
 module.exports = {
   DATA_KEY,
+  HIDE_LEGACY_KEY,
   defaultData,
   loadData,
   saveData,
   getUser,
   setUser,
+  getHideLegacy,
+  setHideLegacy,
   scopeKey,
   saveProgress,
   getSavedProgress,

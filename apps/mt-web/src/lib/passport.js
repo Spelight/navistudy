@@ -84,7 +84,7 @@ export async function startPassportLogin() {
   sessionStorage.setItem("navi_oauth_state", state);
   sessionStorage.setItem("navi_oauth_return", location.href);
   const query = new URLSearchParams({ response_type: "code", client_id: "mt-web", redirect_uri: redirectUri, code_challenge: await challenge(verifier), code_challenge_method: "S256", state });
-  location.assign(`https://study.dxir.net.cn/oauth/authorize?${query}`);
+  location.assign(`https://study.example.test/oauth/authorize?${query}`);
 }
 
 export function createPassportSync({ getData, setData, onAccount, onStatus }) {

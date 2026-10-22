@@ -1,105 +1,63 @@
 <view class="page home">
-  <view class="appbar">
-    <picker mode="selector" range="{{bookNames}}" value="{{bookIndex}}" bindchange="changeBook">
-      <view class="book-pill"><text class="book-pill-label">{{activeBookTitle}}</text><text class="chev">v</text></view>
-    </picker>
-    <view class="nav-title">学习</view>
-    <view class="more-dot">...</view>
-  </view>
-
-  <view wx:if="{{!noticeHidden}}" class="notice panel">
-    <view class="notice-icon"></view>
-    <view class="notice-text">先选教材和 Unit，再开始背词；错题和收藏会自动进入复习范围。</view>
-    <view class="notice-close" bindtap="dismissNotice">×</view>
-  </view>
-
-  <view class="book-overview">
-    <view class="book-overview-copy">
-      <view class="book-name">{{activeBookTitle}}</view>
-      <view class="book-progress">当前范围 {{progressMastered}} / {{progressTotal}}</view>
+  <view class="words-header">
+    <view class="brand-mark">NW</view>
+    <view class="words-brand">
+      <text class="words-title">NaviWords</text>
+      <text class="words-subtitle">现代大学英语词汇学习</text>
     </view>
-    <view class="percent">{{progressPercent}}%</view>
-  </view>
-  <view class="progress-line">
-    <view class="progress-fill" style="width: {{progressPercent}}%;"></view>
-  </view>
-
-  <view class="metric-grid">
-    <button class="metric panel" bindtap="goBooks">
-      <view class="metric-icon mastered-mark"></view>
-      <text class="metric-label">已掌握</text>
-      <text class="metric-num">{{progressMastered}}</text>
-      <text class="metric-sub">本范围词数</text>
-    </button>
-    <button class="metric panel" bindtap="startDefault">
-      <view class="metric-icon todo-mark"></view>
-      <text class="metric-label">待推进</text>
-      <text class="metric-num">{{remainingCount}}</text>
-      <text class="metric-sub">继续完成</text>
-    </button>
-    <button class="metric panel" bindtap="goWrong">
-      <view class="metric-icon wrong-mark"></view>
-      <text class="metric-label">错题</text>
-      <text class="metric-num">{{wrongCount}}</text>
-      <text class="metric-sub">待攻克</text>
-    </button>
-    <button class="metric panel" bindtap="goBooks">
-      <view class="metric-icon fav-mark"></view>
-      <text class="metric-label">收藏</text>
-      <text class="metric-num">{{favCount}}</text>
-      <text class="metric-sub">重点关注</text>
+    <button class="switch-module" bindtap="goStudy" aria-label="切换 NaviStudy 功能">
+      <view class="switch-grid"><view></view><view></view><view></view><view></view></view>
     </button>
   </view>
 
-  <view wx:if="{{lastProgressText}}" class="resume panel" bindtap="continuePractice">
-    <view class="resume-copy">
-      <view class="resume-title">继续上次</view>
-      <view class="resume-meta">{{lastProgressText}}</view>
+  <view class="launch-panel">
+    <view class="launch-head">
+      <view><text class="launch-kicker">当前学习范围</text><text class="launch-title">{{activeBookTitle}}</text></view>
+      <text class="launch-progress">{{progressMastered}} / {{progressTotal}}</text>
     </view>
-    <button class="resume-btn">继续</button>
-  </view>
 
-  <view class="scope-panel panel">
-    <view class="scope-head">
-      <view class="scope-copy">
-        <view class="section-title">选择 Unit</view>
-        <view class="scope-meta">当前教材内选择一个复习范围</view>
+    <scroll-view class="book-strip" scroll-x enhanced show-scrollbar="{{false}}">
+      <view class="chip-row">
+        <button wx:for="{{books}}" wx:key="id" class="scope-chip {{activeBook===item.id?'active':''}}" data-index="{{index}}" bindtap="selectBook">{{item.shortTitle}}</button>
       </view>
-      <button class="scope-link" bindtap="goBooks">词表</button>
-    </view>
-    <picker mode="selector" range="{{unitNames}}" value="{{unitIndex}}" bindchange="changeUnit">
-      <view class="unit-picker">{{activeUnitText}} <text class="chev">v</text></view>
-    </picker>
-  </view>
-
-  <view class="section-row">
-    <view class="section-title">练习模式</view>
-  </view>
-
-  <view class="mode-stack">
-    <block wx:for="{{modeCards}}" wx:key="id">
-      <view wx:if="{{item.primary}}" class="mode-primary panel" data-mode="{{item.id}}" bindtap="startMode">
-        <view class="mode-left">
-          <view class="mode-icon {{item.icon}}"></view>
-          <view class="mode-copy">
-            <view class="mode-title">{{item.title}}</view>
-            <view class="mode-desc">{{item.desc}}</view>
-          </view>
-        </view>
-        <view class="mode-action">开始</view>
+    </scroll-view>
+    <scroll-view class="unit-strip" scroll-x enhanced show-scrollbar="{{false}}">
+      <view class="chip-row">
+        <button wx:for="{{units}}" wx:key="unit" class="unit-chip {{activeUnit==item.unit?'active':''}}" data-index="{{index}}" bindtap="selectUnit">{{item.shortLabel}}</button>
       </view>
-    </block>
+    </scroll-view>
 
+    <view class="content-kind-switch" aria-label="选择单词或词组">
+      <button class="content-kind-option {{activeKind==='word'?'active':''}}" data-kind="word" bindtap="selectKind">单词</button>
+      <button class="content-kind-option {{activeKind==='phrase'?'active':''}}" data-kind="phrase" bindtap="selectKind">词组</button>
+    </view>
+    <view class="scope-summary"><text>{{activeUnitText}}</text><text>已掌握 {{progressPercent}}%</text></view>
+    <view class="progress-track"><view class="progress-value" style="width: {{progressPercent}}%;"></view></view>
+
+    <view class="launch-primary {{!progressTotal ? 'disabled' : ''}}" bindtap="continuePractice" hover-class="action-pressed" aria-role="button" aria-disabled="{{!progressTotal}}">
+      <view><text class="launch-primary-title">{{lastProgressText ? '继续背诵' : '开始背诵'}}</text><text class="launch-primary-meta">{{lastProgressText || (progressTotal ? '从当前范围第 1 个' + kindLabel + '开始' : '当前范围暂无' + kindLabel)}}</text></view>
+      <view class="forward-arrow"></view>
+    </view>
     <view class="mode-grid">
-      <block wx:for="{{modeCards}}" wx:key="id">
-        <view wx:if="{{!item.primary}}" class="mode-card panel" data-mode="{{item.id}}" bindtap="startMode">
-          <view class="mode-icon {{item.icon}}"></view>
-          <view class="mode-copy">
-            <view class="mode-title">{{item.title}}</view>
-            <view class="mode-desc">{{item.desc}}</view>
-          </view>
-        </view>
-      </block>
+      <button class="mode-button" data-mode="choice" bindtap="startMode"><text class="mode-name">选择</text><text class="mode-note">快速检测</text></button>
+      <button class="mode-button" data-mode="spell" bindtap="startMode"><text class="mode-name">拼写</text><text class="mode-note">强化记忆</text></button>
+    </view>
+  </view>
+
+  <view class="progress-summary">
+    <view class="summary-item"><text class="summary-value">{{remainingCount}}</text><text class="summary-label">待学习</text></view>
+    <view class="summary-item"><text class="summary-value">{{progressMastered}}</text><text class="summary-label">已掌握</text></view>
+    <view class="summary-item"><text class="summary-value risk">{{wrongCount}}</text><text class="summary-label">错题</text></view>
+    <view class="summary-item"><text class="summary-value saved">{{favCount}}</text><text class="summary-label">收藏</text></view>
+  </view>
+
+  <view class="section-head"><text>专项复习</text><text class="section-link" bindtap="goBooks">查看大纲</text></view>
+  <view class="review-list">
+    <view class="review-row" bindtap="goWrong" hover-class="row-pressed">
+      <view class="review-mark wrong-mark">错</view><view class="review-copy"><text>错题复习</text><text>集中处理当前教材中的薄弱词</text></view><text class="review-count">{{wrongCount}}</text><view class="row-arrow"></view>
+    </view>
+    <view class="review-row" data-mode="fav-card" bindtap="startMode" hover-class="row-pressed">
+      <view class="review-mark fav-mark">藏</view><view class="review-copy"><text>收藏复习</text><text>只看你主动标记的重点内容</text></view><text class="review-count">{{favCount}}</text><view class="row-arrow"></view>
     </view>
   </view>
 </view>

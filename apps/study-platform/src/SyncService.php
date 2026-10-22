@@ -99,10 +99,31 @@ final class SyncService
 
     private function emptyDocument(string $product): array
     {
-        return $product === 'words' ? [
+        if ($product === 'words') return [
             'favs'=>[], 'mastered'=>[], 'last_progress'=>null, 'progress_positions'=>[], 'wrongbook'=>[], 'custom_lists'=>[], 'lookup_history'=>[],
             'srs_state'=>[], 'daily_state'=>[], 'study_events'=>[], 'app_settings'=>[], '_sync'=>['tombstones'=>[],'entityUpdatedAt'=>[]],
-        ] : [
+        ];
+        if ($product === 'plan') return [
+            'schemaVersion'=>1,
+            'student'=>null,
+            'plan'=>null,
+            'requirements'=>[],
+            'coursePool'=>[],
+            'languageTracks'=>[],
+            'courses'=>[],
+            'manualCorrections'=>[],
+            'audit'=>null,
+            'recommendations'=>[],
+            'importedAt'=>null,
+            'updatedAt'=>0,
+            'source'=>null,
+            '_sync'=>['tombstones'=>[],'entityUpdatedAt'=>[]],
+        ];
+        if ($product === 'reading') return [
+            'bookmarks'=>[], 'notes'=>[], 'lastProgress'=>null, 'settings'=>['lang'=>'both','size'=>19],
+            'updatedAt'=>0, '_sync'=>['tombstones'=>[],'entityUpdatedAt'=>[]],
+        ];
+        return [
             'favorites'=>[], 'answers'=>[], 'wrongbook'=>[], 'mastered'=>[], 'lastProgress'=>null,
             'progressPositions'=>[], 'studyEvents'=>[], 'sessions'=>[], '_sync'=>['tombstones'=>[],'entityUpdatedAt'=>[]],
         ];
@@ -147,6 +168,7 @@ final class SyncService
             return $document;
         }
         if ($type === 'event_append') {
+            if ($product === 'plan') throw new ApiException('unsupported_mutation', 'NaviPlan 只接受快照和手工修正。');
             $eventsKey = $product === 'words' ? 'study_events' : 'studyEvents';
             $event = $mutation['value'] ?? null;
             if (!is_array($event)) throw new ApiException('invalid_event', '学习事件格式无效。');
@@ -156,8 +178,8 @@ final class SyncService
         }
         if ($type === 'progress_set') {
             $scope = $key;
-            $progressKey = $product === 'words' ? 'last_progress' : 'progressPositions';
-            if ($product === 'words') $document[$progressKey] = $mutation['value'] ?? null;
+            $progressKey = $product === 'words' ? 'last_progress' : ($product === 'reading' ? 'lastProgress' : 'progressPositions');
+            if ($product === 'words' || $product === 'reading') $document[$progressKey] = $mutation['value'] ?? null;
             else $document[$progressKey][$scope] = $mutation['value'] ?? null;
             $document['_sync']['entityUpdatedAt'][$progressKey][$scope] = $stamp;
             return $document;
@@ -181,6 +203,22 @@ final class SyncService
             $result['daily_state'] = $this->mergeCounters($current['daily_state'] ?? [], $incoming['daily_state'] ?? []);
             $result['study_events'] = $this->mergeEvents($current['study_events'] ?? [], $incoming['study_events'] ?? []);
             $result['app_settings'] = array_replace(is_array($current['app_settings'] ?? null) ? $current['app_settings'] : [], is_array($incoming['app_settings'] ?? null) ? $incoming['app_settings'] : []);
+        } elseif ($product === 'plan') {
+            foreach (['student','plan','requirements','coursePool','languageTracks','courses','audit','recommendations','importedAt','source'] as $field) {
+                if (array_key_exists($field, $incoming)) $result[$field] = $incoming[$field];
+            }
+            $result['schemaVersion'] = 1;
+            $result['manualCorrections'] = $this->mergeEntityMap(
+                is_array($current['manualCorrections'] ?? null) ? $current['manualCorrections'] : [],
+                is_array($incoming['manualCorrections'] ?? null) ? $incoming['manualCorrections'] : []
+            );
+            $result['updatedAt'] = max((int) ($current['updatedAt'] ?? 0), (int) ($incoming['updatedAt'] ?? 0));
+        } elseif ($product === 'reading') {
+            $result['bookmarks'] = $this->unionByIdentity($current['bookmarks'] ?? [], $incoming['bookmarks'] ?? []);
+            $result['notes'] = $this->mergeEntityMap($current['notes'] ?? [], $incoming['notes'] ?? []);
+            $result['lastProgress'] = $this->newer($current['lastProgress'] ?? null, $incoming['lastProgress'] ?? null);
+            $result['settings'] = array_replace(is_array($current['settings'] ?? null) ? $current['settings'] : [], is_array($incoming['settings'] ?? null) ? $incoming['settings'] : []);
+            $result['updatedAt'] = max((int) ($current['updatedAt'] ?? 0), (int) ($incoming['updatedAt'] ?? 0));
         } else {
             $result['favorites'] = $this->unionByIdentity($current['favorites'] ?? [], $incoming['favorites'] ?? []);
             $result['answers'] = $this->mergeEntityMap($current['answers'] ?? [], $incoming['answers'] ?? [], true);
@@ -222,13 +260,20 @@ final class SyncService
 
     private function allowedCollection(string $product, string $collection): bool
     {
-        $allowed = $product === 'words' ? ['wrongbook','mastered','progress_positions','srs_state','daily_state','app_settings','custom_lists','favs'] : ['answers','wrongbook','mastered','progressPositions','favorites'];
+        $allowed = $product === 'words'
+            ? ['wrongbook','mastered','progress_positions','srs_state','daily_state','app_settings','custom_lists','favs']
+            : ($product === 'plan'
+                ? ['manualCorrections']
+                : ($product === 'reading' ? ['bookmarks','notes','settings'] : ['answers','wrongbook','mastered','progressPositions','favorites']));
         return in_array($collection, $allowed, true);
     }
 
     private function isSetCollection(string $product, string $collection): bool
     {
-        return ($product === 'words' && $collection === 'favs') || ($product === 'mt' && $collection === 'favorites');
+        return ($product === 'words' && $collection === 'favs')
+            || ($product === 'mt' && $collection === 'favorites')
+            || ($product === 'reading' && $collection === 'bookmarks')
+            ;
     }
 
     private function entityIdentity(mixed $item): string

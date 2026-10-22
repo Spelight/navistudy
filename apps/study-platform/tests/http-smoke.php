@@ -69,6 +69,24 @@ check(isset($cookies['navi_access'], $cookies['navi_refresh'], $cookies['navi_ss
 
 $account = callApi('GET', '/api/v1/account', null, [], $cookies);
 check($account['status'] === 200 && ($account['body']['account']['username'] ?? '') === $username, 'Account lookup failed.');
+check(isset($account['body']['serviceAccess']['words']['enabled']), 'Account service access is missing.');
+check(callApi('GET', '/api/v1/admin/overview', null, [], $cookies)['status'] === 403, 'Non-owner accessed the management API.');
+
+$adminCookies = [];
+$adminRegistration = callApi('POST', '/api/v1/auth/register', [
+    'username' => 'Dxir', 'password' => '后台测试密码-2026', 'deviceId' => 'http-admin',
+    'deviceName' => 'Admin HTTP Test', 'clientId' => 'study-web', 'transport' => 'browser',
+], ['Origin' => $origin], $adminCookies);
+check($adminRegistration['status'] === 201, 'Admin registration failed.');
+$overview = callApi('GET', '/api/v1/admin/overview', null, [], $adminCookies);
+check($overview['status'] === 200 && ($overview['body']['users']['total'] ?? 0) >= 2, 'Admin overview failed.');
+$users = callApi('GET', '/api/v1/admin/users?query=' . rawurlencode($username), null, [], $adminCookies);
+check($users['status'] === 200 && ($users['body']['total'] ?? 0) === 1, 'Admin user search failed.');
+$targetId = $registered['body']['account']['id'];
+$permissions = callApi('PATCH', '/api/v1/admin/users/' . $targetId . '/permissions', [
+    'services' => ['words' => ['enabled' => false]],
+], ['Origin' => $origin, 'X-CSRF-Token' => urldecode($adminCookies['navi_csrf'])], $adminCookies);
+check($permissions['status'] === 200 && empty($permissions['body']['permissions']['words']['enabled']), 'Admin permission update failed.');
 
 $verifier = rtrim(strtr(base64_encode(random_bytes(40)), '+/', '-_'), '=');
 $challenge = rtrim(strtr(base64_encode(hash('sha256', $verifier, true)), '+/', '-_'), '=');
@@ -83,33 +101,66 @@ foreach ($authorize['headers'] as $header) if (stripos($header, 'Location:') ===
 parse_str((string) parse_url($location, PHP_URL_QUERY), $redirectQuery);
 check(!empty($redirectQuery['code']) && ($redirectQuery['state'] ?? '') === 'http-state', 'Authorization response is incomplete.');
 
-$token = callApi('POST', '/oauth/token', [
+$token = callApi('POST', '/words/navistudy-api/oauth/token', [
     'code' => $redirectQuery['code'], 'clientId' => 'words-web', 'redirectUri' => $redirect,
     'codeVerifier' => $verifier, 'deviceId' => 'http-browser', 'deviceName' => 'HTTP Test',
 ], ['Origin' => $origin], $cookies);
 check($token['status'] === 200, 'Authorization code exchange failed.');
-$reusedCode = callApi('POST', '/oauth/token', [
+$reusedCode = callApi('POST', '/words/navistudy-api/oauth/token', [
     'code' => $redirectQuery['code'], 'clientId' => 'words-web', 'redirectUri' => $redirect,
     'codeVerifier' => $verifier, 'deviceId' => 'http-browser', 'deviceName' => 'HTTP Test',
 ], ['Origin' => $origin], $cookies);
 check($reusedCode['status'] === 401 && errorCode($reusedCode) === 'invalid_authorization_code', 'Authorization code reuse was accepted.');
 
-$synced = callApi('POST', '/api/v1/sync/words', [
+$synced = callApi('POST', '/words/navistudy-api/api/v1/sync/words', [
     'deviceId' => 'http-browser', 'baseRevision' => 0, 'schemaVersion' => 1,
     'mutations' => [[
         'mutationId' => 'http-mutation-' . bin2hex(random_bytes(6)), 'type' => 'merge_snapshot',
         'data' => ['favs' => [['key' => 'http_word', 'w' => 'verify']], 'wrongbook' => []],
     ]],
-], ['Origin' => $origin, 'X-CSRF-Token' => urldecode($cookies['navi_csrf'])], $cookies);
-check($synced['status'] === 200 && ($synced['body']['document']['favs'][0]['key'] ?? '') === 'http_word', 'Words sync failed.');
-$isolated = callApi('GET', '/api/v1/sync/mt', null, [], $cookies);
+], ['Origin' => $origin, 'X-CSRF-Token' => urldecode($cookies['navi_words_csrf'])], $cookies);
+check($synced['status'] === 403 && errorCode($synced) === 'service_disabled', 'Disabled Words permission did not block sync.');
+$permissions = callApi('PATCH', '/api/v1/admin/users/' . $targetId . '/permissions', [
+    'services' => ['words' => ['enabled' => true]],
+], ['Origin' => $origin, 'X-CSRF-Token' => urldecode($adminCookies['navi_csrf'])], $adminCookies);
+check($permissions['status'] === 200 && !empty($permissions['body']['permissions']['words']['enabled']), 'Admin permission restore failed.');
+$synced = callApi('POST', '/words/navistudy-api/api/v1/sync/words', [
+    'deviceId' => 'http-browser', 'baseRevision' => 0, 'schemaVersion' => 1,
+    'mutations' => [[
+        'mutationId' => 'http-mutation-' . bin2hex(random_bytes(6)), 'type' => 'merge_snapshot',
+        'data' => ['favs' => [['key' => 'http_word', 'w' => 'verify']], 'wrongbook' => []],
+    ]],
+], ['Origin' => $origin, 'X-CSRF-Token' => urldecode($cookies['navi_words_csrf'])], $cookies);
+check($synced['status'] === 200 && ($synced['body']['document']['favs'][0]['key'] ?? '') === 'http_word', 'Words sync did not recover after permission restore.');
+$isolated = callApi('GET', '/words/navistudy-api/api/v1/sync/mt', null, [], $cookies);
 check($isolated['status'] === 403 && errorCode($isolated) === 'insufficient_scope', 'Words session accessed MT data.');
+
+$planRead = callApi('GET', '/words/navistudy-api/api/v1/sync/plan', null, [], $cookies);
+check($planRead['status'] === 403 && errorCode($planRead) === 'insufficient_scope', 'Words session accessed Plan data.');
+$readingRead = callApi('GET', '/words/navistudy-api/api/v1/sync/reading', null, [], $cookies);
+check($readingRead['status'] === 403 && errorCode($readingRead) === 'insufficient_scope', 'Words session accessed Reading data.');
 
 $native = callApi('POST', '/api/v1/auth/login', [
     'username' => $username, 'password' => $password, 'deviceId' => 'http-native',
     'deviceName' => 'HTTP Native Test', 'clientId' => 'navistudy-wechat', 'transport' => 'native',
 ], ['Origin' => $origin]);
 check($native['status'] === 200 && !empty($native['body']['refreshToken']), 'Native login failed.');
+$planSynced = callApi('POST', '/api/v1/sync/plan', [
+    'deviceId' => 'http-native', 'baseRevision' => 0, 'schemaVersion' => 1,
+    'mutations' => [[
+        'mutationId' => 'http-plan-' . bin2hex(random_bytes(6)), 'type' => 'merge_snapshot',
+        'data' => ['student' => ['major' => '英语'], 'requirements' => [['id' => 'required', 'requiredCredits' => 40]], 'courses' => [['id' => 'course-http', 'name' => '大学英语']], 'manualCorrections' => []],
+    ]],
+], ['Origin' => $origin, 'Authorization' => 'Bearer ' . $native['body']['accessToken']]);
+check($planSynced['status'] === 200 && ($planSynced['body']['document']['courses'][0]['id'] ?? '') === 'course-http', 'Plan sync failed.');
+$readingSynced = callApi('POST', '/api/v1/sync/reading', [
+    'deviceId' => 'http-native', 'baseRevision' => 0, 'schemaVersion' => 1,
+    'mutations' => [[
+        'mutationId' => 'http-reading-' . bin2hex(random_bytes(6)), 'type' => 'merge_snapshot',
+        'data' => ['bookmarks' => ['2:7'], 'notes' => ['2:7' => 'HTTP reading note'], 'lastProgress' => ['unit' => 2, 'paragraph' => 7, 'updatedAt' => 1700000000000]],
+    ]],
+], ['Origin' => $origin, 'Authorization' => 'Bearer ' . $native['body']['accessToken']]);
+check($readingSynced['status'] === 200 && ($readingSynced['body']['document']['bookmarks'][0] ?? '') === '2:7', 'Reading sync failed.');
 $refresh = callApi('POST', '/api/v1/auth/refresh', ['refreshToken' => $native['body']['refreshToken']], ['Origin' => $origin]);
 check($refresh['status'] === 200 && $refresh['body']['refreshToken'] !== $native['body']['refreshToken'], 'Refresh token did not rotate.');
 $replay = callApi('POST', '/api/v1/auth/refresh', ['refreshToken' => $native['body']['refreshToken']], ['Origin' => $origin]);

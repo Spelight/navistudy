@@ -1,8 +1,11 @@
 <view class="page home">
   <view class="appbar">
-    <view class="brand-mark">MT</view>
+    <button class="brand-mark" bindtap="goStudy" aria-label="切换 NaviStudy 功能">切换功能</button>
     <view class="nav-title">练习</view>
-    <button class="bank-link" bindtap="goBank">题库</button>
+    <view class="appbar-actions">
+      <button class="materials-link" bindtap="goMaterials">资料</button>
+      <button class="bank-link" bindtap="goBank">题库</button>
+    </view>
   </view>
 
   <view wx:if="{{!noticeHidden}}" class="notice panel">
@@ -56,9 +59,15 @@
   </view>
 
   <view class="scope-panel panel">
-    <view>
-      <view class="section-title">练习范围</view>
-      <view class="scope-meta">选择一个章节，所有入口同步生效</view>
+    <view class="scope-head">
+      <view class="scope-copy">
+        <view class="section-title">练习范围</view>
+        <view class="scope-meta">选择一个章节，所有入口同步生效</view>
+      </view>
+      <label class="history-switch">
+        <text>不看历史题</text>
+        <switch checked="{{hideLegacy}}" color="#2c7be5" bindchange="changeHideLegacy" />
+      </label>
     </view>
     <picker mode="selector" range="{{chapterNames}}" value="{{chapterIndex}}" bindchange="changeChapter">
       <view class="chapter-picker">{{activeChapterText}} <text class="chev">v</text></view>

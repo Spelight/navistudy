@@ -32,7 +32,7 @@
         desktop.innerHTML =
             '<div class="nw-global-brand"><div class="nw-global-mark">NW</div><div><div class="nw-global-name">NaviWords</div><div class="nw-global-sub">英语专业复习系统</div></div></div>' +
             '<div class="nw-global-label">学习</div><div class="nw-global-links">' + desktopItems.map(function (item) { return itemMarkup(item, false); }).join('') + '</div>' +
-            '<div class="nw-global-footer"><a class="nw-global-study" href="https://study.dxir.net.cn/"><i data-lucide="layout-grid" aria-hidden="true"></i><span>返回 NaviStudy</span></a><button type="button" class="nw-global-version" onclick="switchWordsWebVersion(\'legacy\')"><i data-lucide="repeat-2" aria-hidden="true"></i><span>切换旧版</span></button><div class="nw-global-build">新版完整界面</div></div>';
+            '<div class="nw-global-footer"><a class="nw-global-study" href="https://study.example.test/"><i data-lucide="layout-grid" aria-hidden="true"></i><span>返回 NaviStudy</span></a><button type="button" class="nw-global-version" onclick="switchWordsWebVersion(\'legacy\')"><i data-lucide="repeat-2" aria-hidden="true"></i><span>切换旧版</span></button><div class="nw-global-build">新版完整界面</div></div>';
         document.body.insertBefore(desktop, document.body.firstChild);
 
         const mobile = document.createElement('nav');
@@ -44,7 +44,7 @@
 
         const utility = document.createElement('div');
         utility.className = 'nw-mobile-utility';
-        utility.innerHTML = '<span>NaviWords</span><div class="nw-mobile-actions"><a class="nw-mobile-study" href="https://study.dxir.net.cn/"><i data-lucide="layout-grid" aria-hidden="true"></i><span>NaviStudy</span></a><button type="button" class="nw-mobile-version" title="切换旧版" aria-label="切换旧版" onclick="switchWordsWebVersion(\'legacy\')"><i data-lucide="repeat-2" aria-hidden="true"></i></button></div>';
+        utility.innerHTML = '<span>NaviWords</span><div class="nw-mobile-actions"><a class="nw-mobile-study" href="https://study.example.test/"><i data-lucide="layout-grid" aria-hidden="true"></i><span>NaviStudy</span></a><button type="button" class="nw-mobile-version" title="切换旧版" aria-label="切换旧版" onclick="switchWordsWebVersion(\'legacy\')"><i data-lucide="repeat-2" aria-hidden="true"></i></button></div>';
         document.body.appendChild(utility);
     }
 

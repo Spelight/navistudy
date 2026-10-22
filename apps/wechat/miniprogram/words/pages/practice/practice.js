@@ -1,10 +1,18 @@
 const vocab = require('../../utils/data');
 const store = require('../../utils/store');
 
+function track(name, data = {}) {
+  const app = getApp();
+  if (app && typeof app.trackAnalytics === 'function') app.trackAnalytics(name, Object.assign({ product: 'words' }, data));
+}
+
 Page({
+  behaviors: [require('../../../behaviors/theme')],
   data: {
     book: 'b3',
     unit: 'all',
+    kind: 'word',
+    kindLabel: '单词',
     mode: 'card',
     source: '',
     wrongType: 'all',
@@ -12,6 +20,13 @@ Page({
     words: [],
     index: 0,
     current: {},
+    currentView: {},
+    definitionMode: 'both',
+    definitionModes: [
+      { id: 'zh', label: '中文' },
+      { id: 'en', label: '英文' },
+      { id: 'both', label: '双语' }
+    ],
     displayTitle: '背诵',
     scopeLabel: '',
     flipped: false,
@@ -24,30 +39,33 @@ Page({
     answerText: '',
     isFirst: true,
     isLast: false,
+    progressPercent: 0,
     wordSizeClass: ''
   },
 
   onLoad(query = {}) {
     const book = query.book || 'b3';
     const unit = query.unit || 'all';
+    const kind = query.kind === 'phrase' ? 'phrase' : 'word';
     const mode = query.mode || 'card';
     const source = query.source || '';
     const wrongType = query.type || 'all';
     const wrongKey = query.key ? decodeURIComponent(query.key) : '';
     const requestedWordKey = query.wordKey ? decodeURIComponent(query.wordKey) : '';
     const hasIndex = Object.prototype.hasOwnProperty.call(query, 'index');
-    let words = vocab.getWordsByScope(book, unit);
-    let scopeLabel = unit === 'all' ? vocab.getBookById(book).title : vocab.unitLabels[unit];
+    let words = vocab.getItemsByScope(book, unit, kind);
+    const kindLabel = kind === 'phrase' ? '词组' : '单词';
+    let scopeLabel = `${unit === 'all' ? vocab.getBookById(book).title : vocab.unitLabels[unit]} · ${kindLabel}`;
     if (source === 'wrong') {
-      const wrongEntries = store.getWrongList({ bookId: book, type: wrongType, key: wrongKey });
+      const wrongEntries = store.getWrongList({ bookId: book, type: wrongType, key: wrongKey, kind });
       words = wrongEntries.map(entry => entry.item).filter(item => item && item.w);
-      scopeLabel = book === 'all' ? '全部错题' : `${vocab.getBookById(book).title} 错题`;
+      scopeLabel = book === 'all' ? `全部${kindLabel}错题` : `${vocab.getBookById(book).title} · ${kindLabel}错题`;
     } else if (source === 'fav') {
-      const scopeKeys = new Set(vocab.getWordsByScope(book, unit).map(item => vocab.getItemKey(item)));
+      const scopeKeys = new Set(vocab.getItemsByScope(book, unit, kind).map(item => vocab.getItemKey(item)));
       words = (store.loadData().favs || []).filter(item => scopeKeys.has(vocab.getItemKey(item)));
-      scopeLabel = `${unit === 'all' ? vocab.getBookById(book).title : vocab.unitLabels[unit]} 收藏`;
+      scopeLabel = `${unit === 'all' ? vocab.getBookById(book).title : vocab.unitLabels[unit]} · ${kindLabel}收藏`;
     }
-    const saved = hasIndex ? null : store.getSavedProgress({ book, unit, mode, source, wrongType, wrongKey });
+    const saved = hasIndex ? null : store.getSavedProgress({ book, unit, kind, mode, source, wrongType, wrongKey });
     const matchedIndex = requestedWordKey
       ? words.findIndex(item => vocab.getItemKey(item) === requestedWordKey)
       : -1;
@@ -55,8 +73,23 @@ Page({
       ? matchedIndex
       : (hasIndex ? Number(query.index) : this.resolveSavedIndex(words, saved));
     const safeIndex = Number.isFinite(requestedIndex) ? Math.max(0, requestedIndex) : 0;
-    this.setData({ book, unit, mode, source, wrongType, wrongKey, words, scopeLabel, index: Math.min(safeIndex, Math.max(words.length - 1, 0)) });
+    this.setData({
+      book,
+      unit,
+      kind,
+      kindLabel,
+      mode,
+      source,
+      wrongType,
+      wrongKey,
+      words,
+      scopeLabel,
+      definitionMode: store.getDefinitionMode(),
+      index: Math.min(safeIndex, Math.max(words.length - 1, 0))
+    });
     this.loadCurrent();
+    track('page_view');
+    track('study_start', { metadata: { book, unit, mode, source: source || 'scope', count: words.length } });
   },
 
   onHide() {
@@ -78,14 +111,16 @@ Page({
 
   loadCurrent() {
     const current = this.data.words[this.data.index] || {};
+    const currentView = this.buildView(current);
     const displayTitleMap = {
       card: '顺序背词',
       choice: '看词选义',
       spell: '拼写练习'
     };
-    const wordLength = String(current.w || '').length;
+    const wordLength = String(currentView.term || '').length;
     this.setData({
       current,
+      currentView,
       displayTitle: displayTitleMap[this.data.mode] || '练习',
       flipped: false,
       favorite: store.isFavorite(current),
@@ -96,6 +131,7 @@ Page({
       answerText: '',
       isFirst: this.data.index <= 0,
       isLast: this.data.index >= this.data.words.length - 1,
+      progressPercent: this.data.words.length ? Math.round(((this.data.index + 1) / this.data.words.length) * 100) : 0,
       wordSizeClass: wordLength > 20 ? 'word-xlong' : (wordLength > 12 ? 'word-long' : '')
     });
     if (this.data.mode === 'choice') this.makeChoice();
@@ -108,6 +144,7 @@ Page({
     store.saveProgress({
       book: this.data.book,
       unit: this.data.unit,
+      kind: this.data.kind,
       mode: this.data.mode,
       source: this.data.source,
       wrongType: this.data.wrongType,
@@ -125,14 +162,52 @@ Page({
     const saved = store.getSavedProgress({
       book: this.data.book,
       unit: this.data.unit,
+      kind: this.data.kind,
       mode,
       source: this.data.source,
       wrongType: this.data.wrongType,
       wrongKey: this.data.wrongKey
     });
     const index = saved ? this.resolveSavedIndex(this.data.words, saved) : this.data.index;
-    this.setData({ mode, index: Math.min(Math.max(index, 0), Math.max(this.data.words.length - 1, 0)) });
-    this.loadCurrent();
+    this.setData(
+      { mode, index: Math.min(Math.max(index, 0), Math.max(this.data.words.length - 1, 0)) },
+      () => this.loadCurrent()
+    );
+  },
+
+  selectDefinitionMode(e) {
+    if (this.data.kind === 'phrase') return;
+    const definitionMode = store.setDefinitionMode(e.currentTarget.dataset.mode || 'both');
+    this.setData({ definitionMode, currentView: this.buildView(this.data.current, definitionMode) });
+    if (this.data.mode === 'choice') this.makeChoice(definitionMode);
+  },
+
+  definitionText(item, mode = this.data.definitionMode) {
+    const view = vocab.normalizeItem(item);
+    if (view.kind === 'phrase') return view.definitionZh || view.term;
+    if (mode === 'en') return view.definitionEn || view.definitionZh || view.term;
+    if (mode === 'zh') return view.definitionZh || view.definitionEn || view.term;
+    return [view.definitionZh, view.definitionEn].filter(Boolean).join(' · ') || view.term;
+  },
+
+  buildView(item, definitionMode = this.data.definitionMode) {
+    const view = vocab.normalizeItem(item);
+    const mode = definitionMode || store.getDefinitionMode();
+    const showEnglish = view.kind === 'word' && mode !== 'zh' && Boolean(view.definitionEn);
+    const showChinese = mode !== 'en' && Boolean(view.definitionZh);
+    const fallbackText = !showEnglish && !showChinese
+      ? (view.definitionEn || view.definitionZh || '')
+      : '';
+    const fallbackLabel = fallbackText && view.kind === 'word'
+      ? (mode === 'en' ? '暂无英文释义，已显示中文' : (mode === 'zh' ? '暂无中文释义，已显示英文' : ''))
+      : '';
+    return Object.assign({}, view, {
+      showEnglish,
+      showChinese,
+      fallbackText,
+      fallbackLabel,
+      spellPrompt: this.definitionText(item, mode)
+    });
   },
 
   flipCard() {
@@ -160,7 +235,7 @@ Page({
   },
 
   prevWord() {
-    if (!this.data.words.length) return;
+    if (!this.data.words.length || this.data.isFirst) return;
     const prev = Math.max(this.data.index - 1, 0);
     this.setData({ index: prev });
     this.loadCurrent();
@@ -170,18 +245,21 @@ Page({
     if (!this.data.current.w) return;
     const added = store.toggleFavorite(this.data.current);
     this.setData({ favorite: added });
+    track(added ? 'favorite_added' : 'favorite_removed', { itemId: vocab.getItemKey(this.data.current) });
     wx.showToast({ title: added ? '已收藏' : '已取消', icon: 'none' });
   },
 
   forgetWord() {
     if (!this.data.current.w) return;
     store.markWrong(this.data.current, this.data.mode === 'spell' ? 'spell' : 'choice');
+    track('question_answered', { itemId: vocab.getItemKey(this.data.current), value: 0, metadata: { mode: this.data.mode } });
     this.advanceAfterAssessment();
   },
 
   knowWord() {
     if (!this.data.current.w) return;
     store.markKnown(this.data.current, this.data.mode);
+    track('question_answered', { itemId: vocab.getItemKey(this.data.current), value: 1, metadata: { mode: this.data.mode } });
     this.advanceAfterAssessment();
   },
 
@@ -194,16 +272,20 @@ Page({
     this.nextWord();
   },
 
-  makeChoice() {
+  makeChoice(definitionMode = this.data.definitionMode) {
     const current = this.data.words[this.data.index];
     if (!current) return;
     const fallback = this.data.source === 'wrong'
-      ? (this.data.book === 'all' ? vocab.getAllWords() : vocab.getWordsByScope(this.data.book, 'all'))
+      ? (this.data.book === 'all'
+        ? (this.data.kind === 'phrase' ? vocab.getAllPhrases() : vocab.getAllWords())
+        : vocab.getItemsByScope(this.data.book, 'all', this.data.kind))
       : this.data.words;
     const source = this.data.words.length >= 4 ? this.data.words : fallback;
-    const pool = vocab.shuffle(source.filter(item => item.key !== current.key)).slice(0, 3);
-    const options = vocab.shuffle([current].concat(pool)).map(item => Object.assign({}, item, {
-      optionText: item.e || item.c || item.w
+    const pool = vocab.shuffle(source.filter(item => vocab.getItemKey(item) !== vocab.getItemKey(current))).slice(0, 3);
+    const optionLabels = ['A', 'B', 'C', 'D'];
+    const options = vocab.shuffle([current].concat(pool)).map((item, index) => Object.assign({}, item, {
+      optionText: this.definitionText(item, definitionMode),
+      optionLabel: optionLabels[index] || String(index + 1)
     }));
     this.setData({ options });
   },
@@ -214,10 +296,11 @@ Page({
     const ok = selectedKey === this.data.current.key;
     if (ok) store.markKnown(this.data.current, 'choice');
     else store.markWrong(this.data.current, 'choice');
+    track('question_answered', { itemId: vocab.getItemKey(this.data.current), value: ok ? 1 : 0, metadata: { mode: 'choice' } });
     this.setData({
       answered: true,
       selectedKey,
-      answerText: ok ? '回答正确' : `正确答案：${this.data.current.c}`
+      answerText: ok ? '回答正确' : `正确答案：${this.definitionText(this.data.current)}`
     });
   },
 
@@ -232,6 +315,7 @@ Page({
     const ok = answer === input;
     if (ok) store.markKnown(this.data.current, 'spell');
     else store.markWrong(this.data.current, 'spell');
+    track('question_answered', { itemId: vocab.getItemKey(this.data.current), value: ok ? 1 : 0, metadata: { mode: 'spell' } });
     this.setData({ answered: true, spellCorrect: ok, answerText: ok ? '拼写正确' : `答案：${this.data.current.w}` });
   }
 });

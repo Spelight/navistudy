@@ -1,0 +1,15 @@
+<view class="page saved-page">
+  <view class="eyebrow">READING NOTES</view>
+  <view class="page-title">书签与批注</view>
+  <button class="passport-row" bindtap="goPassport"><text>NaviPassport</text><text>{{syncStatus}} ›</text></button>
+
+  <view wx:if="{{saved.length}}" class="saved-list">
+    <button wx:for="{{saved}}" wx:key="key" class="saved-row" data-key="{{item.key}}" bindtap="openParagraph">
+      <text class="saved-place">Unit {{item.unitId}} · §{{item.paragraphNumber}}</text>
+      <text class="saved-title">{{item.title}}</text>
+      <text class="saved-excerpt">{{item.excerpt}}...</text>
+      <text wx:if="{{item.note}}" class="saved-note">{{item.note}}</text>
+    </button>
+  </view>
+  <view wx:else class="empty-state"><text>还没有书签或批注</text><text>阅读时收藏段落，或写下自己的理解。</text></view>
+</view>

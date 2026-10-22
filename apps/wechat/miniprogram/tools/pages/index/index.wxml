@@ -1,0 +1,12 @@
+<view class="page theme-{{naviTheme}}">
+  <view class="appbar"><view><view class="appbar-title">NaviTools</view><view class="appbar-sub">独立、轻量、方便分享的实用工具</view></view><button class="top-button" bindtap="goPassport">{{account ? account.username : '登录'}}</button></view>
+  <view class="hero"><view class="hero-label">Availability</view><view class="hero-title">找出大家都有空的时间</view><view class="hero-copy">创建问卷后直接分享到群聊。参与者无需登录，创建者使用 NaviPassport 管理统计与回答。</view></view>
+  <view class="section-head"><view class="section-title">我的问卷</view><view class="section-meta" wx:if="{{profile}}">{{profile.unrestricted ? '不限数量' : profile.activeSessionCount + ' / ' + profile.sessionLimit}}</view></view>
+  <view wx:if="{{!account}}" class="panel empty">登录 NaviPassport 后即可创建和管理问卷。参与填写不需要登录。</view>
+  <view wx:elif="{{sessions.length}}" class="list"><button wx:for="{{sessions}}" wx:key="id" class="row" data-id="{{item.id}}" bindtap="openStats"><view class="row-top"><text class="strong">{{item.title}}</text><view class="tag {{item.state === 'OPEN' ? '' : 'closed'}}">{{item.state === 'OPEN' ? '填写中' : item.state === 'UPCOMING' ? '未开始' : '已结束'}}</view></view><text>{{item.termLabel}} · {{item.totalResponses}} 人已提交</text></button></view>
+  <view wx:else class="panel empty">{{loading ? '正在读取问卷...' : '还没有问卷。创建一张时间表后就可以分享。'}}</view>
+  <view wx:if="{{error}}" class="error">{{error}}</view>
+  <view class="actions"><button class="primary-btn" bindtap="create">创建问卷</button><button class="secondary-btn" bindtap="load" loading="{{loading}}">刷新</button></view>
+  <button class="secondary-btn module-web" bindtap="copyWeb">打开网页版 · 复制链接</button>
+  <button class="secondary-btn module-home" bindtap="goHome">切换 NaviStudy 功能</button>
+</view>

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -1694,9 +1694,8 @@
     }
 </style>
 	<link rel="stylesheet" href="modern-system.css">
-	<link rel="icon" type="image/png" href="https://q1.qlogo.cn/g?b=qq&nk=1604214224&s=640">
 </head>
-<body class="nw-modern">
+<body class="nw-modern" data-analytics-product="words">
 <!--
 THESIS: NaviWords is a unit-based exam study console; every route is one continuous app, not a modern homepage attached to legacy screens.
 OWN-WORLD: charcoal work surfaces, crisp cobalt actions, green/red answer states, square learning controls, compact lists, and one consistent navigation rail.
@@ -1838,7 +1837,6 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
                     <button class="nw-tool-btn" onclick="enterCustomPage()"><i class="nw-tool-icon" data-lucide="layers-3" aria-hidden="true"></i><span><span class="nw-tool-title">自建词库</span><span class="nw-tool-desc">查词、建库、复习</span></span></button>
                     <button class="nw-tool-btn" onclick="exportLearningData()"><i class="nw-tool-icon" data-lucide="download" aria-hidden="true"></i><span><span class="nw-tool-title">导出学习数据</span><span class="nw-tool-desc">备份收藏、错题和进度</span></span></button>
                     <button class="nw-tool-btn" onclick="importLearningData()"><i class="nw-tool-icon" data-lucide="upload" aria-hidden="true"></i><span><span class="nw-tool-title">导入学习数据</span><span class="nw-tool-desc">从 JSON 恢复学习记录</span></span></button>
-                    <button class="nw-tool-btn" onclick="openAppBetaNotice()"><i class="nw-tool-icon" data-lucide="smartphone" aria-hidden="true"></i><span><span class="nw-tool-title">内测 App 下载</span><span class="nw-tool-desc">重新打开下载公告</span></span></button>
                 </div>
                 <div class="nw-app-info-row"><span>NaviWords Web</span><strong>5.2 新版</strong></div>
             </section>
@@ -1916,6 +1914,13 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
             <button class="filter-btn alpha-sort-btn" onclick="toggleAlphaSort()" id="alpha-sort-b5" title="将当前单元或全部单词按 A-Z 顺序浏览">按首字母排序</button>
             <button class="filter-btn wrongbook-filter-btn" onclick="toggleWrongOnly()" id="wrong-filter-b5" title="只练当前范围答错过的词">只练错题</button>
         </div>
+    </div>
+
+    <div class="definition-mode-bar" aria-label="释义语言">
+        <span>释义语言</span>
+        <button type="button" data-definition-mode="both" onclick="setDefinitionMode('both')">双语</button>
+        <button type="button" data-definition-mode="en" onclick="setDefinitionMode('en')">英文</button>
+        <button type="button" data-definition-mode="zh" onclick="setDefinitionMode('zh')">中文</button>
     </div>
 
     <!-- 视图1: 卡片 -->
@@ -2968,6 +2973,37 @@ function jumpToNextUnit() {
 
 // ================= 背诵卡片逻辑 =================
 let cardIndex = 0;
+let definitionMode = ['both', 'en', 'zh'].includes(localStorage.getItem('navi_definition_mode'))
+    ? localStorage.getItem('navi_definition_mode')
+    : 'both';
+
+function definitionText(item, mode) {
+    if (!item) return '';
+    const selected = mode || definitionMode;
+    if (item.t !== 'w') return item.e || item.c || item.w || '';
+    if (selected === 'en') return item.e || item.c || item.w || '';
+    if (selected === 'zh') return item.c || item.e || item.w || '';
+    return [item.c, item.e].filter(Boolean).join(' · ') || item.w || '';
+}
+
+function syncDefinitionModeButtons() {
+    document.querySelectorAll('[data-definition-mode]').forEach(function(button) {
+        button.classList.toggle('active', button.dataset.definitionMode === definitionMode);
+    });
+}
+
+function setDefinitionMode(mode, markDirty) {
+    definitionMode = ['both', 'en', 'zh'].includes(mode) ? mode : 'both';
+    localStorage.setItem('navi_definition_mode', definitionMode);
+    syncDefinitionModeButtons();
+    if (currentData && currentData.length) {
+        updateCardUI();
+        resetChoiceQuiz();
+        resetSpellQuiz();
+    }
+    if (markDirty !== false) window._naviWordsSync?.markDirty();
+}
+
 function updateCardUI() {
     if(currentData.length === 0) return;
     const item = currentData[cardIndex];
@@ -2975,8 +3011,8 @@ function updateCardUI() {
     if(item.t === 'w') {
         document.getElementById('cardWord').innerText = item.w;
         document.getElementById('cardPhonetic').innerText = item.p;
-        document.getElementById('cardEn').innerHTML = item.e;
-        document.getElementById('cardCn').innerText = item.c;
+        document.getElementById('cardEn').innerHTML = definitionMode !== 'zh' ? (item.e || item.c || '') : '';
+        document.getElementById('cardCn').innerText = definitionMode !== 'en' ? (item.c || item.e || '') : '';
     } else {
         document.getElementById('cardWord').innerText = item.e;
         document.getElementById('cardPhonetic').innerText = "[翻译]";
@@ -3013,6 +3049,7 @@ let choiceQueue = [], choiceWrong = [], currentChoiceItem = null;
 function resetChoiceQuiz() {
     let words = currentData.filter(i => i.t === 'w');
     if (wrongOnlyEnabled) words = words.filter(isWrongItem);
+    if (words.length) window.NaviAnalytics?.track('study_start', { product: 'words', metadata: { mode: 'choice', count: words.length } });
     choiceQueue = [...words].sort(() => Math.random() - 0.5);
     choiceWrong = [];
     document.getElementById('choice-result').style.display = 'none';
@@ -3057,19 +3094,21 @@ function loadNextChoice() {
     options.forEach(opt => {
         let btn = document.createElement("button");
         btn.className = "choice-btn";
-        btn.innerText = opt.e;
+        btn.innerText = definitionText(opt);
         btn.onclick = () => {
             let allBtns = document.querySelectorAll('.choice-btn');
             allBtns.forEach(b => b.disabled = true);
             incStat('_stat_quiz');
-            if(opt.w === currentChoiceItem.w) {
+            const correct = opt.w === currentChoiceItem.w;
+            window.NaviAnalytics?.track('question_answered', { product: 'words', itemId: getItemKey(currentChoiceItem), value: correct ? 1 : 0, metadata: { mode: 'choice' } });
+            if(correct) {
                 btn.classList.add('correct');
                 setTimeout(loadNextChoice, 500);
             } else {
                 btn.classList.add('wrong');
                 choiceWrong.push(currentChoiceItem);
                 markWrongItem(currentChoiceItem, 'choice');
-                allBtns.forEach(b => { if(b.innerText === currentChoiceItem.e) b.classList.add('correct'); });
+                allBtns.forEach(b => { if(b.innerText === definitionText(currentChoiceItem)) b.classList.add('correct'); });
                 showAddFavPrompt(currentChoiceItem);
                 setTimeout(loadNextChoice, 2000);
             }
@@ -3082,6 +3121,7 @@ function loadNextChoice() {
 let spellQueue = [], spellWrong = [], currentSpellItem = null, spellHintLevel = 0;
 function resetSpellQuiz() {
     const words = wrongOnlyEnabled ? getWrongScopedItems() : currentData;
+    if (words.length) window.NaviAnalytics?.track('study_start', { product: 'words', metadata: { mode: 'spell', count: words.length } });
     spellQueue = [...words].sort(() => Math.random() - 0.5);
     spellWrong = [];
     document.getElementById('spell-result').style.display = 'none';
@@ -3118,8 +3158,8 @@ function loadNextSpell() {
     document.getElementById('s-input').focus();
     document.getElementById('s-feedback').innerText = "";
     if(currentSpellItem.t === 'w') {
-        document.getElementById('s-question-en').innerHTML = currentSpellItem.e;
-        document.getElementById('s-question-cn').innerText = _shortUnitLabel(currentSpellItem.u);
+        document.getElementById('s-question-en').innerText = definitionText(currentSpellItem);
+        document.getElementById('s-question-cn').innerText = _shortUnitLabel(currentSpellItem.u) + ' · ' + (definitionMode === 'both' ? '双语释义' : definitionMode === 'en' ? '英文释义' : '中文释义');
     } else {
         document.getElementById('s-question-en').innerText = currentSpellItem.e; 
         document.getElementById('s-question-cn').innerText = "[翻译]";
@@ -3142,7 +3182,9 @@ function checkSpell() {
     incStat('_stat_quiz');
     const input = document.getElementById('s-input').value.trim().toLowerCase().replace(/[^\w\s]/gi, '');
     const correct = (currentSpellItem.t === 'w' ? currentSpellItem.w : currentSpellItem.c).toLowerCase().replace(/[^\w\s]/gi, '');
-    if(input === correct) {
+    const isCorrect = input === correct;
+    window.NaviAnalytics?.track('question_answered', { product: 'words', itemId: getItemKey(currentSpellItem), value: isCorrect ? 1 : 0, metadata: { mode: 'spell' } });
+    if(isCorrect) {
         document.getElementById('s-input').classList.add('correct');
         setTimeout(loadNextSpell, 800);
     } else {
@@ -3156,6 +3198,7 @@ function checkSpell() {
 }
 
 function spellGiveUp() {
+    window.NaviAnalytics?.track('question_answered', { product: 'words', itemId: getItemKey(currentSpellItem), value: 0, metadata: { mode: 'spell_give_up' } });
     spellWrong.push(currentSpellItem);
     markWrongItem(currentSpellItem, 'spell');
     document.getElementById('s-feedback').innerText = "📖 正确答案: " + (currentSpellItem.t === 'w' ? currentSpellItem.w : currentSpellItem.c);
@@ -3377,6 +3420,7 @@ function toggleFavoriteCard() {
         userFavorites.push(item);
         incFavStat(); // 全站收藏计数 +1
     }
+    window.NaviAnalytics?.track(idx >= 0 ? 'favorite_removed' : 'favorite_added', { product: 'words', itemId: key });
     saveFavorites();
     updateStarBtn();
     updateUserStatus();
@@ -3487,6 +3531,8 @@ function renderFavList() {
 }
 
 function removeFavorite(idx) {
+    const item = userFavorites[idx];
+    if (item) window.NaviAnalytics?.track('favorite_removed', { product: 'words', itemId: getItemKey(item) });
     userFavorites.splice(idx, 1);
     saveFavorites();
     updateUserStatus();
@@ -3505,6 +3551,7 @@ function initFavChoiceQuiz() {
         return;
     }
     favChoiceQueue = [...words].sort(() => Math.random() - 0.5);
+    window.NaviAnalytics?.track('study_start', { product: 'words', metadata: { mode: 'favorite_choice', count: words.length } });
     favChoiceWrong = [];
     document.getElementById('fav-choice-result').style.display = 'none';
     document.getElementById('fav-choice-quiz-box').style.display = 'block';
@@ -3543,7 +3590,9 @@ function loadNextFavChoice() {
         btn.onclick = () => {
             document.querySelectorAll('#fc-options .choice-btn').forEach(b => b.disabled = true);
             incStat('_stat_quiz');
-            if (opt.w === currentFavChoiceItem.w) {
+            const correct = opt.w === currentFavChoiceItem.w;
+            window.NaviAnalytics?.track('question_answered', { product: 'words', itemId: getItemKey(currentFavChoiceItem), value: correct ? 1 : 0, metadata: { mode: 'favorite_choice' } });
+            if (correct) {
                 btn.classList.add('correct');
                 setTimeout(loadNextFavChoice, 500);
             } else {
@@ -3570,6 +3619,7 @@ function initFavSpellQuiz() {
         return;
     }
     favSpellQueue = [...userFavorites].sort(() => Math.random() - 0.5);
+    window.NaviAnalytics?.track('study_start', { product: 'words', metadata: { mode: 'favorite_spell', count: userFavorites.length } });
     favSpellWrong = [];
     document.getElementById('fav-spell-result').style.display = 'none';
     document.getElementById('fav-spell-quiz-box').style.display = 'block';
@@ -3620,7 +3670,9 @@ function checkFavSpell() {
     incStat('_stat_quiz');
     const input = document.getElementById('fs-input').value.trim().toLowerCase().replace(/[^\w\s]/gi, '');
     const correct = (currentFavSpellItem.t === 'w' ? currentFavSpellItem.w : currentFavSpellItem.c).toLowerCase().replace(/[^\w\s]/gi, '');
-    if (input === correct) {
+    const isCorrect = input === correct;
+    window.NaviAnalytics?.track('question_answered', { product: 'words', itemId: getItemKey(currentFavSpellItem), value: isCorrect ? 1 : 0, metadata: { mode: 'favorite_spell' } });
+    if (isCorrect) {
         document.getElementById('fs-input').classList.add('correct');
         setTimeout(loadNextFavSpell, 800);
     } else {
@@ -3631,7 +3683,7 @@ function checkFavSpell() {
     }
 }
 
-function favSpellGiveUp() { favSpellWrong.push(currentFavSpellItem); toggleFavSpellBtns(false); }
+function favSpellGiveUp() { window.NaviAnalytics?.track('question_answered', { product: 'words', itemId: getItemKey(currentFavSpellItem), value: 0, metadata: { mode: 'favorite_spell_give_up' } }); favSpellWrong.push(currentFavSpellItem); toggleFavSpellBtns(false); }
 function toggleFavSpellBtns(isActive) {
     document.getElementById('fs-btns-active').style.display = isActive ? 'grid' : 'none';
     document.getElementById('fs-btns-next').style.display = isActive ? 'none' : 'block';
@@ -3664,6 +3716,7 @@ function confirmAddFav() {
         const key = getItemKey(_afpItem);
         if (!userFavorites.includes(key)) {
             userFavorites.push(key);
+            window.NaviAnalytics?.track('favorite_added', { product: 'words', itemId: key });
             saveFavorites();
             updateUserStatus();
             incFavStat(); // 全站收藏计数 +1
@@ -4115,6 +4168,7 @@ function startSprintQuiz() {
         return;
     }
     const title = `考前冲刺 · ${pool.length} 题`;
+    window.NaviAnalytics?.track('study_start', { product: 'words', metadata: { mode: 'sprint', count: pool.length } });
     initClassicsView(title, pool);
 }
 
@@ -4246,6 +4300,7 @@ function toggleModalFav() {
         userFavorites.push(item);
         incFavStat();
     }
+    window.NaviAnalytics?.track(idx >= 0 ? 'favorite_removed' : 'favorite_added', { product: 'words', itemId: _omCurrentKey });
     saveFavorites();
     updateUserStatus();
     _updateModalStar();
@@ -4335,6 +4390,7 @@ function toggleOutlineFav(btn, key) {
         btn.classList.add('starred');
         btn.title = '取消收藏';
     }
+    window.NaviAnalytics?.track(idx >= 0 ? 'favorite_removed' : 'favorite_added', { product: 'words', itemId: key });
     saveFavorites();
     updateUserStatus();
 }
@@ -5254,23 +5310,6 @@ function _syncUserData() {
     <button class="resume-toast-btn" onclick="resumeProgress()">继续背 →</button>
 </div>
 
-<!-- 内测 App 下载公告 -->
-<div id="app-beta-notice" role="dialog" aria-modal="true" aria-labelledby="app-beta-title" onclick="dismissAppBetaNotice(event)">
-    <div class="app-beta-card">
-        <div class="app-beta-title" id="app-beta-title">内测 App 下载</div>
-        <div class="app-beta-desc">
-            DXIR Words Android 内测版已经开放下载。可在手机上离线背词、练错题、查看词书，并通过用户名同步学习数据。
-        </div>
-        <div class="app-beta-meta">
-            <span class="app-beta-chip" id="app-beta-version">Android 测试版</span>
-            <span>安装 APK 时按系统提示允许安装即可</span>
-        </div>
-        <div class="app-beta-actions">
-            <a class="app-beta-download" id="app-beta-download" href="https://words.dxir.net.cn/app-updates/dxir-words/dxir-words-0.1.37.apk" download>下载内测 App</a>
-            <button class="app-beta-close" type="button" onclick="dismissAppBetaNotice()">稍后再说</button>
-        </div>
-    </div>
-</div>
 <div id="cl-toast"></div>
 <script>
     function switchWordsWebVersion(version) {
@@ -5278,50 +5317,7 @@ function _syncUserData() {
         location.href = version === 'legacy' ? 'index-legacy.html' : 'index.html';
     }
 </script>
-<script>
-    (function() {
-        const noticeKey = 'dxir_words_app_beta_notice_20260830';
-        const defaultApk = 'https://words.dxir.net.cn/app-updates/dxir-words/dxir-words-0.1.37.apk';
-        window.dismissAppBetaNotice = function(event) {
-            const notice = document.getElementById('app-beta-notice');
-            if (event && event.target !== notice) return;
-            if (notice) notice.classList.remove('show');
-            try { localStorage.setItem(noticeKey, '1'); } catch(e) {}
-        };
-        window.openAppBetaNotice = function() {
-            const notice = document.getElementById('app-beta-notice');
-            try { localStorage.removeItem(noticeKey); } catch(e) {}
-            if (notice) notice.classList.add('show');
-        };
-        function showAppBetaNotice() {
-            const notice = document.getElementById('app-beta-notice');
-            if (!notice) return;
-            try {
-                if (localStorage.getItem(noticeKey) === '1') return;
-            } catch(e) {}
-            notice.classList.add('show');
-        }
-        function applyLatest(info) {
-            if (!info || !info.apkUrl) return;
-            const link = document.getElementById('app-beta-download');
-            const version = document.getElementById('app-beta-version');
-            if (link) link.href = info.apkUrl || defaultApk;
-            if (version && info.versionName) version.textContent = 'Android ' + info.versionName;
-        }
-        fetch((location.pathname.startsWith('/words/') ? '/words/' : '/') + 'app-updates/dxir-words/latest.json', { cache: 'no-store' })
-            .then(function(resp) { return resp.ok ? resp.json() : null; })
-            .then(applyLatest)
-            .catch(function() {});
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') window.dismissAppBetaNotice();
-        });
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() { setTimeout(showAppBetaNotice, 650); });
-        } else {
-            setTimeout(showAppBetaNotice, 650);
-        }
-    })();
-</script>
+<script src="./analytics.js"></script>
 <script src="passport-sync.js"></script>
 <script>
 (function () {
@@ -5336,7 +5332,8 @@ function _syncUserData() {
                 last_progress: parseStored('_last_progress', null),
                 wrongbook: userWrongbook || {},
                 custom_lists: (typeof clLoadLists === 'function') ? _cleanCustomLists(clLoadLists()) : [],
-                lookup_history: (typeof clLoadHistory === 'function') ? clLoadHistory() : []
+                lookup_history: (typeof clLoadHistory === 'function') ? clLoadHistory() : [],
+                app_settings: { definitionMode: definitionMode }
             };
         },
         importData: function (data) {
@@ -5348,6 +5345,7 @@ function _syncUserData() {
             if (data.last_progress) localStorage.setItem('_last_progress', JSON.stringify(data.last_progress));
             if (Array.isArray(data.custom_lists)) localStorage.setItem(CL_KEY, JSON.stringify(_cleanCustomLists(data.custom_lists)));
             if (Array.isArray(data.lookup_history)) localStorage.setItem(CL_HISTORY_KEY, JSON.stringify(data.lookup_history.slice(0, CL_HISTORY_MAX)));
+            if (data.app_settings && data.app_settings.definitionMode) setDefinitionMode(data.app_settings.definitionMode, false);
             updateUserStatus(); updateStarBtn(); syncWrongbookButtons();
             if (typeof renderClLists === 'function') renderClLists();
             setTimeout(showResumeTip, 50);
@@ -5364,6 +5362,7 @@ function _syncUserData() {
         }
     });
     window._naviWordsSync.initialize();
+    syncDefinitionModeButtons();
 })();
 </script>
 <script src="modern-system.js"></script>

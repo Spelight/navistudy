@@ -30,7 +30,7 @@
   },
   "compileType": "miniprogram",
   "libVersion": "3.8.12",
-  "appid": "wxf74fc392aa13842b",
+  "appid": "touristappid",
   "projectname": "military-theory-wechat-miniprogram",
   "miniprogramRoot": "miniprogram/",
   "condition": {},

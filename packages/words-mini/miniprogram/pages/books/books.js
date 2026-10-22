@@ -1,8 +1,8 @@
 const vocab = require('../../utils/data');
 const store = require('../../utils/store');
 
-function buildUnits(book) {
-  const allWords = vocab.getWordsByScope(book.id, 'all');
+function buildUnits(book, kind = 'word') {
+  const allWords = vocab.getItemsByScope(book.id, 'all', kind);
   return [{
     unit: 'all',
     label: '全部',
@@ -10,7 +10,7 @@ function buildUnits(book) {
   }].concat(book.units.map(unit => ({
     unit,
     label: vocab.unitShortLabel(unit).replace(/^B\d\s/, ''),
-    count: vocab.getWordsByScope(book.id, unit).length
+    count: vocab.getItemsByScope(book.id, unit, kind).length
   })));
 }
 
@@ -53,6 +53,12 @@ Page({
     unitIndex: 0,
     activeUnit: 'all',
     activeUnitTitle: '全部',
+    activeKind: 'word',
+    kindLabel: '单词',
+    kindOptions: [
+      { id: 'word', label: '单词' },
+      { id: 'phrase', label: '词组' }
+    ],
     query: '',
     activeView: 'unit',
     viewModes: [
@@ -80,6 +86,8 @@ Page({
     const savedBook = wx.getStorageSync('naviwords_active_book') || 'b5';
     const savedUnit = wx.getStorageSync('naviwords_active_unit') || 'all';
     const savedView = wx.getStorageSync('naviwords_books_view') || 'unit';
+    const savedKind = wx.getStorageSync('naviwords_content_kind') === 'phrase' ? 'phrase' : 'word';
+    this.setData({ activeKind: savedKind, kindLabel: savedKind === 'phrase' ? '词组' : '单词' });
     this.setViewState(savedView);
     this.prepare(savedBook, savedUnit);
   },
@@ -92,7 +100,7 @@ Page({
     const books = vocab.bookStats();
     const bookIndex = Math.max(books.findIndex(item => item.id === bookId), 0);
     const book = books[bookIndex] || books[0];
-    const units = buildUnits(book);
+    const units = buildUnits(book, this.data.activeKind);
     const unitIndex = Math.max(units.findIndex(item => String(item.unit) === String(unit)), 0);
     const activeUnit = (units[unitIndex] || units[0]).unit;
     wx.setStorageSync('naviwords_active_book', book.id);
@@ -117,12 +125,13 @@ Page({
     const favKeys = new Set((learning.favs || []).map(item => vocab.getItemKey(item)));
     const wrongKeys = new Set(Object.keys(learning.wrongbook || {}));
     const masteredKeys = new Set(Object.keys(learning.mastered || {}));
-    const base = vocab.getWordsByScope(this.data.activeBook, this.data.activeUnit);
-    const progress = store.getProgressStats(this.data.activeBook, this.data.activeUnit);
+    const base = vocab.getItemsByScope(this.data.activeBook, this.data.activeUnit, this.data.activeKind);
+    const progress = store.getProgressStats(this.data.activeBook, this.data.activeUnit, this.data.activeKind);
     const q = String(this.data.query || '').trim().toLowerCase();
     const summary = summarize(base, favKeys, wrongKeys, masteredKeys);
     const words = base.map((item, index) => {
       const key = vocab.getItemKey(item);
+      const view = vocab.normalizeItem(item);
       let statusClass = 'todo';
       let statusText = '未练';
       if (masteredKeys.has(key)) {
@@ -143,6 +152,8 @@ Page({
         wordIndex: index,
         statusClass,
         statusText,
+        definitionPrimary: view.kind === 'phrase' ? view.definitionZh : view.definitionEn,
+        definitionSecondary: view.kind === 'phrase' ? '' : view.definitionZh,
         unitLabel: vocab.unitLabels[item.u] || `Unit ${item.u}`
       });
     });
@@ -152,7 +163,7 @@ Page({
       String(item.e || '').toLowerCase().includes(q)
     ) : words).slice(0, 120);
     const unitRows = this.data.units.filter(item => item.unit !== 'all').map(unit => {
-      const unitWords = vocab.getWordsByScope(this.data.activeBook, unit.unit);
+      const unitWords = vocab.getItemsByScope(this.data.activeBook, unit.unit, this.data.activeKind);
       const unitSummary = summarize(unitWords, favKeys, wrongKeys, masteredKeys);
       return Object.assign({}, unit, unitSummary, {
         active: String(unit.unit) === String(this.data.activeUnit)
@@ -178,7 +189,7 @@ Page({
   },
 
   setViewState(view) {
-    const activeView = ['unit', 'overview', 'map', 'list'].includes(view) ? view : 'unit';
+    const activeView = ['unit', 'list'].includes(view) ? view : 'unit';
     wx.setStorageSync('naviwords_books_view', activeView);
     this.setData({
       activeView,
@@ -191,6 +202,13 @@ Page({
 
   changeView(e) {
     this.setViewState(e.currentTarget.dataset.view || 'unit');
+  },
+
+  selectKind(e) {
+    const activeKind = e.currentTarget.dataset.kind === 'phrase' ? 'phrase' : 'word';
+    wx.setStorageSync('naviwords_content_kind', activeKind);
+    this.setData({ activeKind, kindLabel: activeKind === 'phrase' ? '词组' : '单词', query: '' });
+    this.prepare(this.data.activeBook, 'all');
   },
 
   changeBook(e) {
@@ -216,17 +234,18 @@ Page({
   },
 
   startCurrent() {
-    wx.navigateTo({ url: `/pages/practice/practice?book=${this.data.activeBook}&unit=${this.data.activeUnit}&mode=card` });
+    if (!this.data.progressTotal) return wx.showToast({ title: `当前范围没有${this.data.kindLabel}`, icon: 'none' });
+    wx.navigateTo({ url: `/pages/practice/practice?book=${this.data.activeBook}&unit=${this.data.activeUnit}&kind=${this.data.activeKind}&mode=card` });
   },
 
   startUnit(e) {
     const unit = e.currentTarget.dataset.unit || 'all';
     wx.setStorageSync('naviwords_active_unit', unit);
-    wx.navigateTo({ url: `/pages/practice/practice?book=${this.data.activeBook}&unit=${unit}&mode=card` });
+    wx.navigateTo({ url: `/pages/practice/practice?book=${this.data.activeBook}&unit=${unit}&kind=${this.data.activeKind}&mode=card` });
   },
 
   startFromWord(e) {
     const index = Number(e.currentTarget.dataset.index || 0);
-    wx.navigateTo({ url: `/pages/practice/practice?book=${this.data.activeBook}&unit=${this.data.activeUnit}&mode=card&index=${index}` });
+    wx.navigateTo({ url: `/pages/practice/practice?book=${this.data.activeBook}&unit=${this.data.activeUnit}&kind=${this.data.activeKind}&mode=card&index=${index}` });
   }
 });

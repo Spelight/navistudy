@@ -1,0 +1,28 @@
+<view class="page theme-{{naviTheme}} reading-home">
+  <view class="eyebrow">MODERN COLLEGE ENGLISH · BOOK 5</view>
+  <view class="page-title">NaviReading</view>
+  <view class="intro">五个单元逐段对照，教材 Notes、词汇和精读批注回到每一段真实语境。</view>
+
+  <button wx:if="{{continuation}}" class="continue" bindtap="continueReading">
+    <view><text>继续上次阅读</text><text>Unit {{continuation.unit}} · §{{continuation.paragraph}}</text></view>
+    <text class="continue-arrow">›</text>
+  </button>
+
+  <view class="library-meta">
+    <text>335 段</text><text>69 条教材 Notes</text><text>{{bookmarkCount}} 个书签 · {{noteCount}} 条批注</text>
+  </view>
+
+  <view class="unit-list">
+    <button wx:for="{{units}}" wx:key="id" class="unit-row" data-unit="{{item.id}}" bindtap="openUnit">
+      <image src="{{item.cover}}" mode="aspectFill" lazy-load aria-label="Unit {{item.id}} 教材页"></image>
+      <view class="unit-copy">
+        <text class="unit-number">UNIT {{item.id}}</text>
+        <text class="unit-title">{{item.title}}</text>
+        <text class="unit-zh">{{item.titleZh}}</text>
+        <text class="unit-detail">{{item.author}} · {{item.paragraphs}} 段 · {{item.notes}} Notes</text>
+      </view>
+      <text class="unit-arrow">›</text>
+    </button>
+  </view>
+</view>
+<view class="module-tabbar"><navigator class="module-tab active" url="/reading/pages/index/index" open-type="redirect"><image class="module-tab-icon" src="/reading/assets/tab/study-active.png" mode="aspectFit" /><text>精读</text></navigator><navigator class="module-tab" url="/reading/pages/me/me" open-type="redirect"><image class="module-tab-icon" src="/reading/assets/tab/me.png" mode="aspectFit" /><text>书签</text></navigator><navigator class="module-tab module-home" url="/pages/portal/portal" open-type="reLaunch"><view class="module-home-icon"><view></view></view><text>NaviStudy</text></navigator></view>

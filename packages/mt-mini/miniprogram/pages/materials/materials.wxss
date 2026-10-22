@@ -1,0 +1,28 @@
+.materials-page { padding-bottom: 54rpx; }
+.materials-sub { margin-top: 10rpx; color: #969ca8; font-size: 24rpx; line-height: 1.5; }
+.material-notice { margin-top: 24rpx; padding: 22rpx; display: flex; align-items: flex-start; gap: 16rpx; color: #d5b36a; font-size: 23rpx; line-height: 1.55; box-shadow: none; }
+.notice-mark { width: 40rpx; height: 40rpx; flex: none; border-radius: 50%; background: #403318; color: #f0b544; display: flex; align-items: center; justify-content: center; font-weight: 900; }
+.group-title { margin: 34rpx 4rpx 14rpx; color: #f5f6fa; font-size: 29rpx; font-weight: 900; display: flex; align-items: baseline; justify-content: space-between; gap: 18rpx; }
+.group-title text { color: #858c98; font-size: 21rpx; font-weight: 700; }
+.materials-list { padding: 0 24rpx; box-shadow: none; }
+.material-row { min-width: 0; min-height: 148rpx; padding: 24rpx 0; border-bottom: 1rpx solid #303238; display: flex; align-items: center; gap: 18rpx; }
+.material-row:last-child { border-bottom: 0; }
+.file-mark { width: 48rpx; height: 58rpx; flex: none; border: 3rpx solid #6faaff; border-radius: 7rpx; position: relative; }
+.file-mark::after { content: ''; position: absolute; right: -3rpx; top: -3rpx; width: 16rpx; height: 16rpx; border-left: 3rpx solid #6faaff; border-bottom: 3rpx solid #6faaff; background: #1c1d20; }
+.file-mark view { position: absolute; left: 10rpx; right: 10rpx; bottom: 12rpx; height: 3rpx; background: #6faaff; box-shadow: 0 -10rpx 0 #6faaff; }
+.material-copy { flex: 1; min-width: 0; }
+.material-name { color: #f5f6fa; font-size: 26rpx; line-height: 1.42; font-weight: 900; word-break: break-word; }
+.material-note { margin-top: 7rpx; color: #a0a6b1; font-size: 22rpx; line-height: 1.42; word-break: break-word; }
+.material-meta { margin-top: 8rpx; color: #767e8b; font-size: 20rpx; line-height: 1.4; word-break: break-word; }
+.download-btn { width: 112rpx; min-height: 66rpx; flex: none; border-radius: 12rpx; background: #172f55; color: #72adff; font-size: 23rpx; font-weight: 900; display: flex; align-items: center; justify-content: center; gap: 8rpx; }
+.download-btn[disabled] { opacity: .5; }
+.download-mark { width: 20rpx; height: 22rpx; border-bottom: 3rpx solid currentColor; position: relative; }
+.download-mark::before { content: ''; position: absolute; left: 8rpx; top: 0; width: 3rpx; height: 14rpx; background: currentColor; }
+.download-mark::after { content: ''; position: absolute; left: 5rpx; top: 8rpx; width: 8rpx; height: 8rpx; border-right: 3rpx solid currentColor; border-bottom: 3rpx solid currentColor; transform: rotate(45deg); }
+
+@media (max-width: 340px) {
+  .materials-list { padding: 0 18rpx; }
+  .material-row { align-items: flex-start; flex-wrap: wrap; }
+  .material-copy { flex-basis: calc(100% - 76rpx); }
+  .download-btn { margin-left: auto; }
+}

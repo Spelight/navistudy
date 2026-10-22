@@ -1,0 +1,17 @@
+services:
+  naviplan-api:
+    build:
+      context: .
+      dockerfile: backend.Dockerfile
+    image: naviplan:20260913
+    container_name: naviplan-api
+    restart: unless-stopped
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8090
+      NAVIPASSPORT_ACCOUNT_URL: https://study.example.test/naviplan/navistudy-api/api/v1/account
+      NAVIPLAN_ALLOWED_ORIGINS: https://study.example.test
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - 127.0.0.1:8090:8090

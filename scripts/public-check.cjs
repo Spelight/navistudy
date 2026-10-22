@@ -1,0 +1,24 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const root=path.resolve(__dirname,'..');
+let count=0;
+function walk(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true})){if(['.git','node_modules','dist','build','var','test-output'].includes(e.name))continue;const p=path.join(dir,e.name);if(e.isDirectory()){walk(p);continue;}const rel=path.relative(root,p).replaceAll('\\','/');count++;
+assert(!/\.agent-local-history|agent-handoff|\.source-extract|\.pdf$|\.docx?$|\.sqlite3?$|\.pem$|\.key$|project\.private\.config/.test(rel),`Private file: ${rel}`);
+if(!/\.(js|cjs|mjs|json|html|css|php|kt|kts|ts|tsx|jsx|md|yaml|yml|txt|example)$/.test(p))continue;
+const s=fs.readFileSync(p,'utf8');
+assert(!/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|\bghp_[A-Za-z0-9]{30,}|\bgithub_pat_[A-Za-z0-9_]{30,}|\bAKIA[A-Z0-9]{16}\b/.test(s),`Credential: ${rel}`);
+if(rel.startsWith('apps/')||rel.startsWith('packages/'))assert(!/dxir\.net\.cn|101\.201\.81\.213|wx[0-9a-f]{16}/.test(s),`Production endpoint: ${rel}`);
+}}
+walk(root);
+const vocab=require('../packages/words-mini/miniprogram/data/vocab.js');
+assert.equal(vocab.words.length,304);
+const bank=JSON.parse(fs.readFileSync(path.join(root,'apps/mt-web/src/data/question-bank.json')));
+assert.equal(bank.questions.length,4);
+assert.deepEqual(new Set(bank.questions.map(q=>q.type)),new Set(['single','multiple','truefalse','short']));
+const reading=JSON.parse(fs.readFileSync(path.join(root,'apps/reading-web/study-data.json')));
+assert.equal(reading.units.length,5);
+assert(reading.units.every(u=>u.author==='NaviStudy Demo'&&u.paragraphs.length===1));
+assert.equal(reading.scansAvailable,false);
+for(const unit of reading.units)for(const field of ['introduction','structure','theme','background','textbookNotes'])assert(Array.isArray(unit[field]),`Missing reading field: ${field}`);
+const admin=fs.readFileSync(path.join(root,'apps/study-platform/src/AdminService.php'),'utf8');
+assert(admin.includes('NAVISTUDY_ADMIN_USERNAME')&&admin.includes("$owner !== ''"));
+console.log(`public-check: OK (${count} files; original fixtures and private-data boundary checked)`);

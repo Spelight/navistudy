@@ -5,15 +5,43 @@ module.exports = [
     "name": "NaviWords",
     "subject": "英语词汇",
     "summary": "Book 3、Book 4、Book 5 与双学位词汇",
-    "metric": "3 词",
-    "path": "/words/pages/index/index"
+    "metric": "300 词 / 4 组",
+    "path": "/words/pages/index/index",
+    "webUrl": "https://study.example.test/words/",
+    "serviceMode": "sync",
+    "visibility": "public"
   },
   {
     "id": "mt",
     "name": "NaviMT 军理通",
     "subject": "军事理论",
     "summary": "六章题库、错题与四类题型练习",
-    "metric": "2 题",
-    "path": "/mt/pages/index/index"
+    "metric": "4 题",
+    "path": "/mt/pages/index/index",
+    "webUrl": "https://study.example.test/mt/",
+    "serviceMode": "sync",
+    "visibility": "public"
+  },
+  {
+    "id": "reading",
+    "name": "NaviReading",
+    "subject": "现代大学英语 Book 5",
+    "summary": "五单元逐段对照、教材注释与个人批注",
+    "metric": "5 段",
+    "path": "/reading/pages/index/index",
+    "webUrl": "https://study.example.test/reading/",
+    "serviceMode": "sync",
+    "visibility": "hidden"
+  },
+  {
+    "id": "plan",
+    "name": "NaviPlan",
+    "subject": "培养方案与毕业进度",
+    "summary": "学分审计、课程修正与选课建议",
+    "metric": "毕业规划",
+    "path": "/plan/pages/index/index",
+    "webUrl": "https://study.example.test/naviplan/",
+    "serviceMode": "sync",
+    "visibility": "hidden"
   }
 ];

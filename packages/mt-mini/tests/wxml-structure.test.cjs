@@ -28,6 +28,5 @@ for (const file of files) {
   assert.strictEqual((source.match(/{{/g) || []).length, (source.match(/}}/g) || []).length, `模板表达式未闭合：${file}`);
 }
 
-assert.strictEqual(files.length, 5, '应检查 5 个页面模板');
+assert.strictEqual(files.length, 6, '应检查 6 个页面模板');
 console.log('wxml-structure.test: OK');
-

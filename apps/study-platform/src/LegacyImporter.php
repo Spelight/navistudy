@@ -51,11 +51,12 @@ final class LegacyImporter
         }
     }
 
-    public function claimAttached(PDO $passport, string $userId, string $usernameKey): void
+    public function claimAttached(PDO $passport, string $userId, string $usernameKey): array
     {
         $this->attachProductDatabases($passport);
         $claims = $passport->prepare('SELECT product,payload_json FROM legacy_claims WHERE username_key=? AND claimed_by IS NULL');
         $claims->execute([$usernameKey]);
+        $claimedProducts = [];
         foreach ($claims->fetchAll() as $claim) {
             $payload = json_decode($claim['payload_json'], true, 128, JSON_THROW_ON_ERROR);
             $product = $claim['product'];
@@ -69,8 +70,11 @@ final class LegacyImporter
             $stmt->execute([$userId,$json,strlen($json),time()]);
             $snap = $passport->prepare("INSERT OR IGNORE INTO {$alias}.snapshots(user_id,revision,schema_version,document_json,created_at) VALUES(?,1,1,?,?)");
             $snap->execute([$userId,$json,time()]);
-            $passport->prepare('UPDATE legacy_claims SET claimed_by=?,claimed_at=? WHERE username_key=? AND product=? AND claimed_by IS NULL')->execute([$userId,time(),$usernameKey,$product]);
+            $mark = $passport->prepare('UPDATE legacy_claims SET claimed_by=?,claimed_at=? WHERE username_key=? AND product=? AND claimed_by IS NULL');
+            $mark->execute([$userId,time(),$usernameKey,$product]);
+            if ($mark->rowCount() > 0) $claimedProducts[] = $product;
         }
+        return array_values(array_unique($claimedProducts));
     }
 
     public function legacyRead(string $product, string $username): array

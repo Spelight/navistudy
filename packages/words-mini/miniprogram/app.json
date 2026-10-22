@@ -22,13 +22,13 @@
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "学习",
+        "text": "首页",
         "iconPath": "assets/tab/study.png",
         "selectedIconPath": "assets/tab/study-active.png"
       },
       {
         "pagePath": "pages/books/books",
-        "text": "词表",
+        "text": "大纲",
         "iconPath": "assets/tab/books.png",
         "selectedIconPath": "assets/tab/books-active.png"
       },

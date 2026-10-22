@@ -1,0 +1,10 @@
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo
+.gradle/
+backend/.gradle/
+backend/build/
+work/tools/
+work/*.cjs
+.impeccable/review/

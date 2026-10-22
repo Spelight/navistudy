@@ -1,25 +1,40 @@
+# Dependencies and build output
 node_modules/
 dist/
-coverage/
-test-output/
-var/
+build/
+.gradle/
+*.tsbuildinfo
+.impeccable/
+
+# Android client development is outside the NaviStudy scope.
+/apps/*-android/
+*.apk
+*.aab
+
+# Local environment and runtime state
 .env
 .env.*
 !.env.example
-*.sqlite
-*.sqlite3
-*.db
-*.tar.gz
-*.zip
-*.bak
+production.env
+test-output/
+runtime/
+data/*.sqlite
+data/*.sqlite3
+data/*.db
 *.log
+
+# Credentials and local IDE/tool configuration
 project.private.config.json
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
 
-# Local content packages are intentionally kept outside this repository.
-content/private/
-apps/*/src/data/private/
-packages/*/miniprogram/data/private/
-
-# Legacy local endpoints are kept out of the public source tree.
-apps/mt-web/public/userdata.php
-apps/*/public/*userdata.php
+# Unredacted local Codex conversation archive. Never commit or upload.
+.agent-local-history/

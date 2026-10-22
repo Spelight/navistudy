@@ -1,4 +1,4 @@
-<view class="page bank-page">
+<view class="page theme-{{naviTheme}} bank-page">
   <view class="appbar">
     <view>
       <view class="top-title">题库</view>
@@ -11,6 +11,14 @@
     <view><text class="summary-num">{{total}}</text><text class="summary-label"> 道匹配题目</text></view>
     <view class="summary-progress">已作答 {{stats.answered}}</view>
   </view>
+
+  <label class="history-filter panel">
+    <view>
+      <text class="history-title">不看历史题</text>
+      <text class="history-desc">开启后，题库、练习、错题和收藏统一排除历史题</text>
+    </view>
+    <switch checked="{{hideLegacy}}" color="#2c7be5" bindchange="changeHideLegacy" />
+  </label>
 
   <scroll-view class="filter-scroll" scroll-x enhanced show-scrollbar="false">
     <view class="filter-row">

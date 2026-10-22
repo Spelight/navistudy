@@ -30,7 +30,7 @@
   },
   "compileType": "miniprogram",
   "libVersion": "3.8.12",
-  "appid": "wxb234ee371dfa09a5",
+  "appid": "touristappid",
   "projectname": "NaviStudy-wechat-miniprogram",
   "miniprogramRoot": "miniprogram/",
   "condition": {},

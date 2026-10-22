@@ -1,10 +1,9 @@
 {
   "name": "navistudy-wechat-miniprogram",
-  "version": "0.1.0",
+  "version": "4.0.2",
   "private": true,
   "scripts": {
     "sync-modules": "node scripts/sync-modules.cjs",
-    "test": "node tests/structure.test.cjs && node tests/module-isolation.test.cjs && node tests/page-logic.test.cjs"
+    "test": "node tests/structure.test.cjs && node tests/module-isolation.test.cjs && node tests/passport-auth.test.cjs && node tests/page-logic.test.cjs && node tests/plan-api.test.cjs && node tests/tools-api.test.cjs"
   }
 }
-

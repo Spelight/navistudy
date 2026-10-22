@@ -55,7 +55,7 @@
     sessionStorage.setItem('navi_oauth_return', location.href);
     const challenge = await pkceChallenge(verifier);
     const query = new URLSearchParams({ response_type: 'code', client_id: clientId, redirect_uri: redirectUri, code_challenge: challenge, code_challenge_method: 'S256', state });
-    location.assign(`https://study.dxir.net.cn/oauth/authorize?${query}`);
+    location.assign(`https://study.example.test/oauth/authorize?${query}`);
   }
 
   async function finishLogin(clientId, redirectUri) {

@@ -1,6 +1,6 @@
 function apiBase() {
   const globalData = getApp().globalData;
-  return globalData.mtApiBase || globalData.apiBase || 'https://mt.dxir.net.cn';
+  return globalData.mtApiBase || globalData.apiBase || 'https://mt.example.test';
 }
 
 function parseResponse(data) {

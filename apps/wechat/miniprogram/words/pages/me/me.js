@@ -1,6 +1,7 @@
 const store = require('../../utils/store');
 
 Page({
+  behaviors: [require('../../../behaviors/theme')],
   data: {
     displayUser: '游客模式',
     version: '',
@@ -36,7 +37,7 @@ Page({
   goPassport() {
     const app = getApp();
     if (Object.prototype.hasOwnProperty.call(app.globalData, 'passportAccount')) {
-      wx.navigateTo({ url: '/pa' + 'ges/passport/passport' });
+      wx.navigateTo({ url: '/pa' + 'ges/passport/passport?returnTo=' + encodeURIComponent('/words/pages/me/me') });
       return;
     }
     wx.showModal({
@@ -56,7 +57,7 @@ Page({
 
   copyWeb() {
     wx.setClipboardData({
-      data: 'https://study.dxir.net.cn/words/',
+      data: 'https://study.example.test/words/',
       success: () => wx.showToast({ title: '已复制网页链接', icon: 'none' })
     });
   },

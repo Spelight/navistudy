@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f4f2ec">
+  <meta name="robots" content="noindex,nofollow">
+  <title>服务后台 · NaviStudy</title>
+  <link rel="stylesheet" href="/admin/admin.css">
+  <script src="/assets/lucide.min.js" defer></script>
+  <script src="/admin/admin.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">跳到主要内容</a>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="返回 NaviStudy">
+      <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+      <span>NaviStudy</span>
+      <small>服务后台</small>
+    </a>
+    <div class="top-actions">
+      <span class="operator" id="operator"><i data-lucide="shield-check"></i><span>验证身份中</span></span>
+      <button class="icon-button" id="refreshButton" type="button" title="刷新当前页面" aria-label="刷新当前页面"><i data-lucide="refresh-cw"></i></button>
+      <button class="icon-button" id="themeButton" type="button" title="切换深浅模式" aria-label="切换深浅模式"><i data-lucide="moon"></i></button>
+      <a class="portal-link" href="/"><i data-lucide="arrow-left"></i><span>学习首页</span></a>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="sidebar" aria-label="后台导航">
+      <nav>
+        <button class="nav-item is-active" type="button" data-view="overview"><i data-lucide="layout-dashboard"></i><span>运营概览</span></button>
+        <button class="nav-item" type="button" data-view="analytics"><i data-lucide="bar-chart-3"></i><span>数据统计</span></button>
+        <button class="nav-item" type="button" data-view="users"><i data-lucide="users"></i><span>用户管理</span><output id="userCount">-</output></button>
+        <button class="nav-item" type="button" data-view="audit"><i data-lucide="scroll-text"></i><span>审计记录</span></button>
+      </nav>
+      <div class="sidebar-foot">
+        <span class="health-dot" aria-hidden="true"></span>
+        <span>Passport 管理接口</span>
+      </div>
+    </aside>
+
+    <main id="content" class="content">
+      <section class="view is-active" id="overviewView" aria-labelledby="overviewTitle">
+        <header class="page-head">
+          <div><p class="eyebrow">OPERATIONS</p><h1 id="overviewTitle">运营概览</h1></div>
+          <time id="generatedAt">读取中</time>
+        </header>
+        <div class="metrics" id="metrics" aria-live="polite">
+          <div class="metric is-loading"></div><div class="metric is-loading"></div><div class="metric is-loading"></div><div class="metric is-loading"></div>
+        </div>
+        <section class="section-block" aria-labelledby="productTitle">
+          <header class="section-title"><div><h2 id="productTitle">应用数据</h2><p>仅统计数据规模，不读取学习正文。</p></div></header>
+          <div class="product-status" id="productStatus"><div class="empty-line">正在汇总应用数据...</div></div>
+        </section>
+        <section class="section-block" aria-labelledby="activityTitle">
+          <header class="section-title"><div><h2 id="activityTitle">最近活动</h2><p>Passport 安全与管理操作。</p></div><button class="text-button" type="button" data-go="audit">查看全部<i data-lucide="arrow-right"></i></button></header>
+          <div class="activity-list" id="recentActivity"><div class="empty-line">正在读取...</div></div>
+        </section>
+      </section>
+
+      <section class="view" id="analyticsView" aria-labelledby="analyticsTitle">
+        <header class="page-head">
+          <div><p class="eyebrow">PRODUCT ANALYTICS</p><h1 id="analyticsTitle">数据统计</h1><p class="page-context" id="analyticsContext">全平台 · 全部产品 · 近 30 天</p></div>
+          <div class="analytics-actions">
+            <label><span>时间范围</span><select id="analyticsRange" aria-label="统计时间范围"><option value="4h">近 4 小时</option><option value="8h">近 8 小时</option><option value="24h">近 24 小时</option><option value="today">今天</option><option value="7d">近 7 天</option><option value="30d" selected>近 30 天</option><option value="90d">近 90 天</option></select></label>
+            <label><span>来源</span><select id="analyticsPlatform" aria-label="访问来源"><option value="all">全部来源</option><option value="web">网页</option><option value="wechat">微信小程序</option></select></label>
+            <label><span>产品</span><select id="analyticsProduct" aria-label="产品范围"><option value="all">全部产品</option><option value="study">NaviStudy</option><option value="words">NaviWords</option><option value="mt">NaviMT</option><option value="reading">NaviReading</option><option value="plan">NaviPlan</option><option value="tools">NaviTools</option></select></label>
+            <button class="icon-button" id="analyticsRefresh" type="button" aria-label="刷新统计" title="刷新统计"><i data-lucide="refresh-cw"></i></button>
+          </div>
+        </header>
+        <div class="metrics" id="analyticsMetrics" aria-live="polite"><div class="metric is-loading"></div><div class="metric is-loading"></div><div class="metric is-loading"></div><div class="metric is-loading"></div></div>
+        <div class="analytics-insights" id="analyticsInsights" aria-label="统计补充指标"></div>
+        <section class="section-block" aria-labelledby="analyticsTrendTitle">
+          <header class="section-title"><div><h2 id="analyticsTrendTitle">活跃趋势</h2><p id="analyticsTrendNote">所有折线使用同一坐标，空白时间补零。</p></div><div class="chart-legend" aria-label="图例"><span class="is-visits">访问</span><span class="is-users">用户</span><span class="is-actions">学习行为</span></div></header>
+          <div class="analytics-chart" id="analyticsTrend"></div>
+        </section>
+        <div class="analytics-breakdown-grid">
+          <section class="section-block" aria-labelledby="analyticsSourcesTitle"><header class="section-title"><div><h2 id="analyticsSourcesTitle">访问来源</h2><p>网页与微信小程序分别统计。</p></div></header><div class="analytics-source-list" id="analyticsSources"></div></section>
+          <section class="section-block" aria-labelledby="analyticsEventsTitle"><header class="section-title"><div><h2 id="analyticsEventsTitle">行为构成</h2><p>当前筛选范围内的事件分布。</p></div></header><div class="analytics-event-list" id="analyticsEvents"></div></section>
+        </div>
+        <section class="section-block" aria-labelledby="analyticsProductsTitle"><header class="section-title"><div><h2 id="analyticsProductsTitle">产品使用</h2><p>比较访问人数、活跃用户、学习行为与收藏。</p></div></header><div class="analytics-product-table" id="analyticsProducts"></div></section>
+        <section class="section-block" aria-labelledby="analyticsContentTitle"><header class="section-title"><div><h2 id="analyticsContentTitle">内容排行</h2><p>查看题目、单词和段落的练习、答错与收藏情况；当前收藏为全来源状态，不展示正文。</p></div><select id="analyticsContentProduct" aria-label="内容产品"><option value="words">NaviWords</option><option value="mt">NaviMT</option><option value="reading">NaviReading</option></select></header><div class="analytics-content-table" id="analyticsContent"></div></section>
+      </section>
+
+      <section class="view" id="usersView" aria-labelledby="usersTitle">
+        <header class="page-head">
+          <div><p class="eyebrow">ACCOUNTS</p><h1 id="usersTitle">用户管理</h1></div>
+          <button class="secondary-button" id="usersRefresh" type="button"><i data-lucide="refresh-cw"></i><span>刷新</span></button>
+        </header>
+        <form class="filters" id="userFilters">
+          <label class="search-field"><i data-lucide="search"></i><span class="sr-only">搜索用户</span><input id="userQuery" type="search" placeholder="用户名、用户 ID、IP 或设备" autocomplete="off"></label>
+          <label><span class="sr-only">账号状态</span><select id="statusFilter"><option value="all">全部状态</option><option value="active">正常</option><option value="pending_delete">待删除</option></select></label>
+          <label><span class="sr-only">应用数据</span><select id="serviceFilter"><option value="all">全部应用</option><option value="words">NaviWords</option><option value="mt">NaviMT</option><option value="reading">NaviReading</option><option value="plan">NaviPlan</option><option value="tools">NaviTools</option></select></label>
+        </form>
+        <div class="table-wrap">
+          <table class="user-table">
+            <thead><tr><th>用户</th><th>最近登录</th><th>设备</th><th>应用</th><th>状态</th><th><span class="sr-only">操作</span></th></tr></thead>
+            <tbody id="userRows"><tr><td colspan="6" class="table-message">正在读取用户...</td></tr></tbody>
+          </table>
+        </div>
+        <footer class="pagination" id="userPagination" hidden>
+          <span id="pageSummary"></span>
+          <div><button class="icon-button" id="prevPage" type="button" aria-label="上一页" title="上一页"><i data-lucide="chevron-left"></i></button><button class="icon-button" id="nextPage" type="button" aria-label="下一页" title="下一页"><i data-lucide="chevron-right"></i></button></div>
+        </footer>
+      </section>
+
+      <section class="view" id="auditView" aria-labelledby="auditTitle">
+        <header class="page-head">
+          <div><p class="eyebrow">SECURITY</p><h1 id="auditTitle">审计记录</h1></div>
+          <button class="secondary-button" id="auditRefresh" type="button"><i data-lucide="refresh-cw"></i><span>刷新</span></button>
+        </header>
+        <form class="filters audit-filters" id="auditFilters">
+          <label class="search-field"><i data-lucide="user-round-search"></i><span class="sr-only">用户 ID</span><input id="auditUser" type="search" placeholder="按用户 ID 筛选" autocomplete="off"></label>
+          <label><span class="sr-only">事件类型</span><select id="eventFilter"><option value="">全部事件</option><option value="login">登录</option><option value="register">注册</option><option value="password_changed">修改密码</option><option value="password_recovered">恢复密码</option><option value="refresh_reuse_detected">凭据重复使用</option><option value="admin_permission_updated">权限变更</option><option value="admin_session_revoked">设备下线</option><option value="admin_sessions_revoked">全部设备下线</option></select></label>
+        </form>
+        <div class="audit-list" id="auditList"><div class="empty-line">正在读取审计记录...</div></div>
+        <footer class="pagination" id="auditPagination" hidden>
+          <span id="auditPageSummary"></span>
+          <div><button class="icon-button" id="auditPrev" type="button" aria-label="上一页" title="上一页"><i data-lucide="chevron-left"></i></button><button class="icon-button" id="auditNext" type="button" aria-label="下一页" title="下一页"><i data-lucide="chevron-right"></i></button></div>
+        </footer>
+      </section>
+
+      <section class="access-state" id="accessState" hidden>
+        <span class="access-icon"><i data-lucide="shield-alert"></i></span>
+        <h1 id="accessTitle">无法进入服务后台</h1>
+        <p id="accessMessage">请使用服务所有者账号登录。</p>
+        <a class="primary-button" id="loginLink" href="/?login=1&amp;returnTo=%2Fadmin%2F"><span>前往登录</span><i data-lucide="arrow-right"></i></a>
+      </section>
+    </main>
+  </div>
+
+  <aside class="detail-panel" id="detailPanel" aria-labelledby="detailTitle" aria-hidden="true">
+    <header class="detail-head">
+      <div><p class="eyebrow">USER DETAIL</p><h2 id="detailTitle">用户详情</h2></div>
+      <button class="icon-button" id="closeDetail" type="button" aria-label="关闭用户详情" title="关闭"><i data-lucide="x"></i></button>
+    </header>
+    <div class="detail-body" id="detailBody"><div class="empty-line">正在读取...</div></div>
+  </aside>
+  <div class="scrim" id="scrim" hidden></div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

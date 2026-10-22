@@ -9,12 +9,14 @@ function formatTime(timestamp) {
 }
 
 Page({
+  behaviors: [require('../../../behaviors/theme')],
   data: {
     chapters: [],
     activeChapter: 'all',
     rows: [],
     total: 0,
-    totalAttempts: 0
+    totalAttempts: 0,
+    hideLegacy: false
   },
 
   onLoad(query = {}) {
@@ -30,7 +32,8 @@ Page({
       questions.bank.chapters.map(title => ({ id: title, title }))
     );
     const learning = store.loadData();
-    const rows = store.getWrongQuestions({ chapter: this.data.activeChapter }).map(question => {
+    const hideLegacy = store.getHideLegacy();
+    const rows = store.getWrongQuestions({ chapter: this.data.activeChapter, hideLegacy }).map(question => {
       const entry = learning.wrongbook[question.id] || {};
       return Object.assign({}, question, {
         typeText: questions.typeName(question.type),
@@ -41,6 +44,7 @@ Page({
     this.setData({
       chapters,
       rows,
+      hideLegacy,
       total: rows.length,
       totalAttempts: rows.reduce((sum, item) => sum + item.attempts, 0)
     });
@@ -48,6 +52,11 @@ Page({
 
   selectChapter(event) {
     this.setData({ activeChapter: event.currentTarget.dataset.chapter || 'all' });
+    this.refresh();
+  },
+
+  changeHideLegacy(event) {
+    store.setHideLegacy(event.detail.value);
     this.refresh();
   },
 
@@ -77,10 +86,9 @@ Page({
       confirmColor: '#d93f32',
       success: result => {
         if (!result.confirm) return;
-        store.clearWrong({ chapter: this.data.activeChapter });
+        store.clearWrong({ chapter: this.data.activeChapter, hideLegacy: this.data.hideLegacy });
         this.refresh();
       }
     });
   }
 });
-

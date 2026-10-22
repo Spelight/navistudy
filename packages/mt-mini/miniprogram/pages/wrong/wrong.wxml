@@ -7,6 +7,14 @@
     <view class="stat-item"><text class="stat-num">{{totalAttempts}}</text><text class="stat-label">累计错次</text></view>
   </view>
 
+  <label class="history-filter panel">
+    <view>
+      <text class="history-title">不看历史题</text>
+      <text class="history-desc">只显示当前资料中的错题</text>
+    </view>
+    <switch checked="{{hideLegacy}}" color="#2c7be5" bindchange="changeHideLegacy" />
+  </label>
+
   <scroll-view class="filter-scroll" scroll-x enhanced show-scrollbar="false">
     <view class="filter-row">
       <button wx:for="{{chapters}}" wx:key="id" class="filter-chip {{activeChapter===item.id?'active':''}}" data-chapter="{{item.id}}" bindtap="selectChapter">{{item.title}}</button>
@@ -32,4 +40,3 @@
     <button class="remove-btn" data-id="{{item.id}}" catchtap="removeOne">移出</button>
   </view>
 </view>
-

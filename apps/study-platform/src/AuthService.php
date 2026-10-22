@@ -34,7 +34,7 @@ final class AuthService
         try {
             $stmt = $pdo->prepare('INSERT INTO users (id, username, username_key, password_hash, recovery_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)');
             $stmt->execute([$userId, $username, $usernameKey, password_hash($password, PASSWORD_ARGON2ID, self::PASSWORD_OPTIONS), $this->recoveryHash($recoveryCode), $now, $now]);
-            $importer->claimAttached($pdo, $userId, $usernameKey);
+            $claimedProducts = $importer->claimAttached($pdo, $userId, $usernameKey);
             $pdo->commit();
         } catch (\PDOException $error) {
             if ($pdo->inTransaction()) $pdo->rollBack();
@@ -49,7 +49,7 @@ final class AuthService
 
         $session = $this->createSession($userId, $deviceId, $deviceName, $clientId, $this->clientScopes($clientId), true);
         $this->audit('register', $userId);
-        return ['account' => $this->publicUser($userId), 'recoveryCode' => $recoveryCode] + $session;
+        return ['account' => $this->publicUser($userId), 'recoveryCode' => $recoveryCode, 'claimedProducts' => $claimedProducts] + $session;
     }
 
     public function login(array $input): array
@@ -65,6 +65,15 @@ final class AuthService
         $stmt = $this->database->passport()->prepare('SELECT * FROM users WHERE username_key = ?');
         $stmt->execute([$this->usernameKey($username)]);
         $user = $stmt->fetch();
+        if (!$user) {
+            $legacy = $this->database->passport()->prepare("SELECT 1 FROM legacy_claims WHERE username_key=? AND product='words' AND claimed_by IS NULL LIMIT 1");
+            $legacy->execute([$this->usernameKey($username)]);
+            if ($legacy->fetchColumn()) {
+                $this->recordLoginFailure($bucket);
+                usleep(random_int(120000, 240000));
+                throw new ApiException('legacy_registration_required', '这是旧版 NaviWords 用户名。首次使用 NaviPassport 请先注册，注册后会自动继承原有记录。', 409);
+            }
+        }
         if (!$user || !password_verify($password, $user['password_hash'])) {
             $this->recordLoginFailure($bucket);
             usleep(random_int(120000, 240000));
@@ -104,6 +113,7 @@ final class AuthService
             $pdo->prepare('INSERT INTO used_refresh_tokens (token_hash, family_id, used_at) VALUES (?, ?, ?)')->execute([$hash, $session['family_id'], $now]);
             $pdo->prepare('UPDATE sessions SET refresh_hash = ?, refresh_expires_at = ?, last_used_at = ? WHERE id = ?')->execute([$this->secretHash($newToken), $now + $this->config->get('refreshTtl'), $now, $session['id']]);
             $pdo->prepare('UPDATE access_tokens SET revoked_at = ? WHERE session_id = ? AND revoked_at IS NULL')->execute([$now, $session['id']]);
+            $this->observeSession($session['id'], $now);
             $pdo->commit();
         } catch (\Throwable $error) {
             if ($pdo->inTransaction()) $pdo->rollBack();
@@ -164,6 +174,7 @@ final class AuthService
         if (!$auth) throw new ApiException('authentication_required', '请先登录 Navi Passport。', 401);
         if (!$allowPendingDeletion && $auth['status'] !== 'active') throw new ApiException('account_pending_deletion', '账号处于删除冻结期，同步已暂停。', 403);
         if ($requiredScope && !$this->hasScope($auth['token_scopes'], $requiredScope)) throw new ApiException('insufficient_scope', '当前登录无权访问该产品数据。', 403);
+        $this->touchSession((string) $auth['session_id']);
         return $auth;
     }
 
@@ -313,6 +324,7 @@ final class AuthService
         } else {
             $pdo->prepare('INSERT INTO sessions (id,family_id,user_id,device_id,device_name,client_id,scopes,refresh_hash,refresh_expires_at,csrf_token,sso_hash,sso_expires_at,created_at,last_used_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)')->execute([$sessionId,$familyId,$userId,$deviceId,$deviceName,$clientId,$scopes,$this->secretHash($refresh),$now+$this->config->get('refreshTtl'),$csrf,$sso ? $this->secretHash($sso) : null,$sso ? $now+$this->config->get('ssoTtl') : null,$now,$now]);
         }
+        $this->observeSession($sessionId, $now);
         return $this->issueAccessToken($sessionId, $userId, $scopes) + [
             'refreshToken' => $refresh,
             'refreshExpiresAt' => $now + $this->config->get('refreshTtl'),
@@ -334,10 +346,12 @@ final class AuthService
     private function clientScopes(string $clientId): string
     {
         return match ($clientId) {
-            'words-web', 'words-android' => 'words:read words:write account',
+            'words-web' => 'words:read words:write account',
             'mt-web' => 'mt:read mt:write account',
-            'navistudy-wechat' => 'words:read words:write mt:read mt:write account',
-            'study-web' => 'words:read mt:read account',
+            'reading-web' => 'reading:read reading:write account',
+            'plan-web' => 'plan:read plan:write account',
+            'navistudy-wechat' => 'words:read words:write mt:read mt:write reading:read reading:write plan:read plan:write account',
+            'study-web' => 'words:read mt:read reading:read plan:read plan:write account',
             default => throw new ApiException('invalid_client', '客户端未登记。', 400),
         };
     }
@@ -351,8 +365,10 @@ final class AuthService
     private function validRedirect(string $clientId, string $uri): bool
     {
         $allowed = [
-            'words-web' => ['https://words.dxir.net.cn/navistudy-callback.html', 'https://study.dxir.net.cn/words/navistudy-callback.html', 'http://127.0.0.1:8081/navistudy-callback.html'],
-            'mt-web' => ['https://mt.dxir.net.cn/navistudy-callback.html', 'https://study.dxir.net.cn/mt/navistudy-callback.html', 'http://127.0.0.1:5173/navistudy-callback.html'],
+            'words-web' => ['https://words.example.test/navistudy-callback.html', 'https://study.example.test/words/navistudy-callback.html', 'http://127.0.0.1:8081/navistudy-callback.html'],
+            'mt-web' => ['https://mt.example.test/navistudy-callback.html', 'https://study.example.test/mt/navistudy-callback.html', 'http://127.0.0.1:5173/navistudy-callback.html'],
+            'reading-web' => ['https://study.example.test/reading/navistudy-callback.html', 'http://127.0.0.1:8082/navistudy-callback.html'],
+            'plan-web' => ['https://study.example.test/naviplan/navistudy-callback.html', 'http://127.0.0.1:5173/navistudy-callback.html'],
         ];
         return in_array($uri, $allowed[$clientId] ?? [], true);
     }
@@ -450,6 +466,25 @@ final class AuthService
     }
 
     private function clearLoginFailures(string $bucket): void { $this->database->passport()->prepare('DELETE FROM login_attempts WHERE bucket=?')->execute([$bucket]); }
+
+    private function touchSession(string $sessionId): void
+    {
+        $now = time();
+        $stmt = $this->database->passport()->prepare('UPDATE sessions SET last_used_at=? WHERE id=? AND last_used_at<?');
+        $stmt->execute([$now, $sessionId, $now - 60]);
+        if ($stmt->rowCount() > 0) $this->observeSession($sessionId, $now);
+    }
+
+    private function observeSession(string $sessionId, int $now): void
+    {
+        $pdo = $this->database->passport();
+        $ip = Http::clientIp();
+        $agent = trim((string) (Http::header('User-Agent') ?? '未知客户端'));
+        $agent = mb_substr($agent === '' ? '未知客户端' : $agent, 0, 240, 'UTF-8');
+        $insert = $pdo->prepare('INSERT OR IGNORE INTO session_observations(session_id,first_ip,last_ip,user_agent,first_seen_at,last_seen_at) VALUES(?,?,?,?,?,?)');
+        $insert->execute([$sessionId, $ip, $ip, $agent, $now, $now]);
+        $pdo->prepare('UPDATE session_observations SET last_ip=?,user_agent=?,last_seen_at=? WHERE session_id=?')->execute([$ip, $agent, $now, $sessionId]);
+    }
 
     private function audit(string $event, ?string $userId, array $details = []): void
     {

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { fromSyncState, toSyncState } from "../src/lib/study-state.js";
+import { fromSyncState, getStudyStats, toSyncState } from "../src/lib/study-state.js";
 
 const webState = {
   attempts: {
@@ -31,5 +31,20 @@ assert.equal(inbound.syncMeta.lastProgress.currentId, "q1");
 const roundTrip = toSyncState(inbound);
 assert.equal(roundTrip.lastProgress.currentId, "q1");
 assert.equal(roundTrip.studyEvents.length, 1);
+
+const scopedState = {
+  attempts: {
+    current: { attempts: 2, correct: 2 },
+    legacy: { attempts: 3, correct: 1 },
+  },
+  wrong: ["legacy"],
+  favorites: ["current", "legacy"],
+};
+const scopedStats = getStudyStats(scopedState, [{ id: "current" }]);
+assert.equal(scopedStats.practiced, 1);
+assert.equal(scopedStats.totalAttempts, 2);
+assert.equal(scopedStats.accuracy, 100);
+assert.equal(scopedStats.wrong, 0);
+assert.equal(scopedStats.favorites, 1);
 
 console.log("test-sync: OK");

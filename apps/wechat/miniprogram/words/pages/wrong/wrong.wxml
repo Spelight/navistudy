@@ -1,6 +1,11 @@
-<view class="page wrong-page">
+<view class="page theme-{{naviTheme}} wrong-page">
+  <view class="page-kicker">我的复习</view>
   <view class="top-title">错题本</view>
-  <view class="wrong-sub">集中处理选择和拼写中真正做错的词。</view>
+  <view class="wrong-sub">按教材和错误类型集中巩固。</view>
+
+  <view class="type-tabs kind-tabs">
+    <view wx:for="{{kindTabs}}" wx:key="id" class="type-tab {{activeKind===item.id?'active':''}}" data-kind="{{item.id}}" bindtap="selectKind">{{item.label}}</view>
+  </view>
 
   <view class="stats panel">
     <view class="stat-item">

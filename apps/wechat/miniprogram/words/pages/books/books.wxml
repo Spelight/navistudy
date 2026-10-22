@@ -1,95 +1,46 @@
-<view class="page outline">
-  <view class="appbar">
-    <picker mode="selector" range="{{bookNames}}" value="{{bookIndex}}" bindchange="changeBook">
-      <view class="book-pill"><text class="book-pill-label">{{activeBookTitle}}</text><text class="chev">v</text></view>
-    </picker>
-    <view class="nav-title">词表</view>
-    <button class="start-mini" bindtap="startCurrent">开始</button>
+<view class="page theme-{{naviTheme}} outline">
+  <view class="outline-head">
+    <view><text class="outline-kicker">NaviWords</text><text class="outline-title">词汇大纲</text></view>
+    <button class="start-current" bindtap="startCurrent">开始学习</button>
   </view>
 
-  <view class="unit-head">
-    <view class="unit-head-copy">
-      <view class="unit-title">{{activeUnitTitle}}</view>
-      <view class="unit-meta">已掌握 {{progressMastered}} / {{progressTotal}}</view>
-    </view>
-    <view class="unit-count">{{progressTotal}} 词</view>
-  </view>
-  <view class="progress-line">
-    <view class="progress-fill" style="width: {{progressPercent}}%;"></view>
+  <picker mode="selector" range="{{bookNames}}" value="{{bookIndex}}" bindchange="changeBook">
+    <view class="book-selector"><view><text class="selector-label">教材</text><text class="selector-value">{{activeBookTitle}}</text></view><text class="selector-arrow">⌄</text></view>
+  </picker>
+  <view class="content-kind-switch" aria-label="选择单词或词组">
+    <button wx:for="{{kindOptions}}" wx:key="id" class="content-kind-option {{activeKind===item.id?'active':''}}" data-kind="{{item.id}}" bindtap="selectKind">{{item.label}}</button>
   </view>
 
-  <scroll-view class="unit-tabs" scroll-x>
-    <view wx:for="{{units}}" wx:key="unit" class="unit-tab {{activeUnit==item.unit?'active':''}}" data-unit="{{item.unit}}" bindtap="selectUnit">{{item.label}}</view>
+  <view class="scope-overview">
+    <view><text class="scope-title">{{activeUnitTitle}}</text><text class="scope-meta">{{progressTotal}} 个{{kindLabel}} · 已掌握 {{progressMastered}}</text></view>
+    <text class="scope-percent">{{progressPercent}}%</text>
+  </view>
+  <view class="progress-line"><view class="progress-fill" style="width: {{progressPercent}}%;"></view></view>
+
+  <scroll-view class="unit-tabs" scroll-x enhanced show-scrollbar="{{false}}">
+    <view class="unit-tab-row"><view wx:for="{{units}}" wx:key="unit" class="unit-tab {{activeUnit==item.unit?'active':''}}" data-unit="{{item.unit}}" bindtap="selectUnit">{{item.label}}</view></view>
   </scroll-view>
 
-  <view class="view-switch">
-    <button wx:for="{{viewModes}}" wx:key="key" class="view-chip {{activeView==item.key?'active':''}}" data-view="{{item.key}}" bindtap="changeView">{{item.label}}</button>
+  <input class="search" placeholder="搜索{{kindLabel}}或释义" value="{{query}}" bindinput="onSearch" />
+  <view wx:if="{{!hasQuery}}" class="view-switch">
+    <button class="view-chip {{activeView==='unit'?'active':''}}" data-view="unit" bindtap="changeView">按 Unit</button>
+    <button class="view-chip {{activeView==='list'?'active':''}}" data-view="list" bindtap="changeView">全部词条</button>
   </view>
 
-  <view wx:if="{{showUnitView && !hasQuery}}" class="unit-mastery panel">
-    <view class="panel-head">
-      <view>
-        <view class="panel-title">Unit 掌握情况</view>
-        <view class="panel-sub">先看薄弱单元，再决定从哪里开始</view>
-      </view>
-    </view>
+  <view wx:if="{{showUnitView && !hasQuery}}" class="unit-list">
     <view wx:for="{{unitRows}}" wx:key="unit" class="unit-row {{item.active?'active':''}}" data-unit="{{item.unit}}" bindtap="selectUnit">
-      <view class="unit-row-top">
-        <view class="unit-row-copy">
-          <view class="unit-row-name">{{item.label}}</view>
-          <view class="unit-row-meta">掌握 {{item.mastered}} / {{item.total}} · 错题 {{item.wrong}}</view>
-        </view>
-        <button class="unit-start" data-unit="{{item.unit}}" catchtap="startUnit">开始</button>
-      </view>
-      <view class="heat-track">
-        <view class="heat-done" style="width: {{item.masteredWidth}};"></view>
-        <view class="heat-wrong" style="width: {{item.wrongWidth}};"></view>
-        <view class="heat-fav" style="width: {{item.favWidth}};"></view>
-      </view>
+      <view class="unit-row-main"><text class="unit-row-name">{{item.label}}</text><text class="unit-row-meta">掌握 {{item.mastered}} / {{item.total}} · 错题 {{item.wrong}}</text><view class="unit-progress"><view style="width: {{item.masteredWidth}};"></view></view></view>
+      <button class="unit-start" data-unit="{{item.unit}}" catchtap="startUnit">学习</button>
     </view>
-  </view>
-
-  <view wx:if="{{showOverviewView && !hasQuery}}" class="overview-grid">
-    <view wx:for="{{overviewStats}}" wx:key="key" class="overview-card panel {{item.className}}">
-      <view class="overview-mark"></view>
-      <view class="overview-label">{{item.label}}</view>
-      <view class="overview-value">{{item.value}}</view>
-      <view class="overview-note">{{item.note}}</view>
-    </view>
-  </view>
-
-  <view wx:if="{{showMapView && !hasQuery}}" class="dot-panel panel">
-    <view class="panel-head">
-      <view>
-        <view class="panel-title">词图</view>
-        <view class="panel-sub">适合快速跳到某个位置继续背</view>
-      </view>
-    </view>
-    <view class="dot-grid">
-      <view wx:for="{{words}}" wx:key="key" class="word-dot {{item.statusClass}}" data-index="{{item.wordIndex}}" bindtap="startFromWord">{{item.number}}</view>
-    </view>
-  </view>
-
-  <input class="input search" placeholder="搜索单词、中文释义或英文释义" value="{{query}}" bindinput="onSearch" />
-
-  <view class="toolbar" wx:if="{{showListView || hasQuery}}">
-    <text class="muted">{{visibleWords.length}} 个词条</text>
-    <text class="muted">绿=掌握 红=错题 金=收藏</text>
   </view>
 
   <block wx:if="{{showListView || hasQuery}}">
-    <view wx:if="{{!visibleWords.length}}" class="empty panel">没有匹配词汇</view>
-    <view wx:for="{{visibleWords}}" wx:key="key" class="word-row panel" data-index="{{item.wordIndex}}" bindtap="startFromWord">
-      <view class="word-main">
-        <view class="word-line">
-          <view class="word">{{item.w}}</view>
-          <view class="state {{item.statusClass}}">{{item.statusText}}</view>
-        </view>
-        <view class="phonetic">{{item.p}}</view>
-        <view class="en">{{item.e}}</view>
-      </view>
-      <view class="cn">{{item.c}}</view>
+    <view class="list-head"><text>{{visibleWords.length}} 个词条</text><text>点按可从该词开始</text></view>
+    <view wx:if="{{!visibleWords.length}}" class="empty-state">没有匹配的词汇</view>
+    <view wx:for="{{visibleWords}}" wx:key="key" class="word-row" data-index="{{item.wordIndex}}" bindtap="startFromWord">
+      <view class="word-index">{{item.number}}</view>
+      <view class="word-main"><view class="word-line"><text class="word">{{item.w}}</text><text class="state {{item.statusClass}}">{{item.statusText}}</text></view><text wx:if="{{item.p}}" class="phonetic">{{item.p}}</text><text class="definition">{{item.definitionPrimary}}</text><text wx:if="{{item.definitionSecondary}}" class="definition secondary">{{item.definitionSecondary}}</text></view>
     </view>
   </block>
 </view>
-<view class="module-tabbar"><navigator class="module-tab" url="/words/pages/index/index" open-type="redirect"><image class="module-tab-icon" src="/words/assets/tab/study.png" mode="aspectFit" /><text>学习</text></navigator><navigator class="module-tab active" url="/words/pages/books/books" open-type="redirect"><image class="module-tab-icon" src="/words/assets/tab/books-active.png" mode="aspectFit" /><text>词表</text></navigator><navigator class="module-tab" url="/words/pages/me/me" open-type="redirect"><image class="module-tab-icon" src="/words/assets/tab/me.png" mode="aspectFit" /><text>我的</text></navigator><navigator class="module-tab module-home" url="/pages/portal/portal" open-type="reLaunch"><view class="module-home-icon"><view></view></view><text>NaviStudy</text></navigator></view>
+<view class="module-tabbar"><navigator class="module-tab" url="/words/pages/index/index" open-type="redirect"><image class="module-tab-icon" src="/words/assets/tab/study.png" mode="aspectFit" /><text>首页</text></navigator><navigator class="module-tab active" url="/words/pages/books/books" open-type="redirect"><image class="module-tab-icon" src="/words/assets/tab/books-active.png" mode="aspectFit" /><text>大纲</text></navigator><navigator class="module-tab" url="/words/pages/me/me" open-type="redirect"><image class="module-tab-icon" src="/words/assets/tab/me.png" mode="aspectFit" /><text>我的</text></navigator><navigator class="module-tab module-home" url="/pages/portal/portal" open-type="reLaunch"><view class="module-home-icon"><view></view></view><text>NaviStudy</text></navigator></view>

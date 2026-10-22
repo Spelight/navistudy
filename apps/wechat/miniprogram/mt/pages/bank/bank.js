@@ -10,6 +10,7 @@ const typeTabs = [
 ];
 
 Page({
+  behaviors: [require('../../../behaviors/theme')],
   data: {
     chapters: [],
     activeChapter: 'all',
@@ -20,6 +21,7 @@ Page({
     total: 0,
     limit: 40,
     hasMore: false,
+    hideLegacy: false,
     stats: {}
   },
 
@@ -34,13 +36,15 @@ Page({
   },
 
   refresh(resetLimit) {
+    const hideLegacy = store.getHideLegacy();
     const chapters = [{ id: 'all', title: '全部' }].concat(
       questions.bank.chapters.map(title => ({ id: title, title }))
     );
     const allRows = questions.filterQuestions({
       chapter: this.data.activeChapter,
       type: this.data.activeType,
-      query: this.data.query
+      query: this.data.query,
+      hideLegacy
     });
     const limit = resetLimit ? 40 : this.data.limit;
     const learning = store.loadData();
@@ -65,7 +69,8 @@ Page({
       total: allRows.length,
       limit,
       hasMore: allRows.length > limit,
-      stats: store.getStats({ chapter: this.data.activeChapter, type: this.data.activeType })
+      hideLegacy,
+      stats: store.getStats({ chapter: this.data.activeChapter, type: this.data.activeType, hideLegacy })
     });
   },
 
@@ -76,6 +81,12 @@ Page({
 
   selectType(event) {
     this.setData({ activeType: event.currentTarget.dataset.type || 'all', limit: 40 });
+    this.refresh(true);
+  },
+
+  changeHideLegacy(event) {
+    store.setHideLegacy(event.detail.value);
+    this.setData({ limit: 40 });
     this.refresh(true);
   },
 
@@ -104,4 +115,3 @@ Page({
     });
   }
 });
-

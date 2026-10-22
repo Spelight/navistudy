@@ -12,6 +12,7 @@ Page({
     accuracy: 0,
     sourceCount: 0,
     legacyCount: 0,
+    legacySummary: '',
     displayUser: '游客模式',
     passportSummary: 'NaviMT 军理通 · 当前记录仅保存在本机',
     passportAction: '登录 Navi Passport',
@@ -23,7 +24,8 @@ Page({
   },
 
   refresh() {
-    const stats = store.getStats();
+    const hideLegacy = store.getHideLegacy();
+    const stats = store.getStats({ hideLegacy });
     const app = getApp();
     const account = app.globalData.passportAccount || null;
     const integrated = Object.prototype.hasOwnProperty.call(app.globalData, 'passportAccount');
@@ -37,6 +39,7 @@ Page({
       accuracy: stats.accuracy,
       sourceCount: questions.bank.sources.length,
       legacyCount: questions.bank.stats.legacy,
+      legacySummary: hideLegacy ? `已排除 ${questions.bank.stats.legacy} 题` : `${questions.bank.stats.legacy} 题（当前显示）`,
       displayUser: account ? account.username : '游客模式',
       passportSummary: account ? 'NaviMT 军理通 · 军理数据独立自动同步' : 'NaviMT 军理通 · 当前记录仅保存在本机',
       passportAction: account ? '管理 Navi Passport' : (integrated ? '登录 Navi Passport' : '前往 NaviStudy 登录'),
@@ -47,7 +50,7 @@ Page({
   goPassport() {
     const app = getApp();
     if (Object.prototype.hasOwnProperty.call(app.globalData, 'passportAccount')) {
-      wx.navigateTo({ url: '/pa' + 'ges/passport/passport' });
+      wx.navigateTo({ url: '/pa' + 'ges/passport/passport?returnTo=' + encodeURIComponent('/pages/me/me') });
       return;
     }
     wx.showModal({
@@ -73,9 +76,13 @@ Page({
     wx.switchTab({ url: '/pages/bank/bank' });
   },
 
+  goMaterials() {
+    wx.navigateTo({ url: '/pages/materials/materials' });
+  },
+
   copyWeb() {
     wx.setClipboardData({
-      data: 'https://study.dxir.net.cn/mt/',
+      data: 'https://study.example.test/mt/',
       success: () => wx.showToast({ title: '已复制网页版链接', icon: 'none' })
     });
   },

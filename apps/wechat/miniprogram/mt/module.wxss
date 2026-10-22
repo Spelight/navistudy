@@ -1,15 +1,18 @@
 page {
   min-height: 100%;
+  width: 100%;
+  overflow-x: hidden;
   background: #050608;
   color: #f6f7fb;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
-view, text, button, input, scroll-view {
+view, text, button, input, scroll-view, picker, navigator, image {
   box-sizing: border-box;
 }
 
 button {
+  max-width: 100%;
   margin: 0;
   padding: 0;
   line-height: 1.2;
@@ -22,6 +25,8 @@ button::after {
 }
 
 .page {
+  width: 100%;
+  min-width: 0;
   padding: 28rpx 30rpx 64rpx;
 }
 
@@ -71,6 +76,7 @@ button::after {
 }
 
 .input {
+  width: 100%;
   min-height: 82rpx;
   padding: 0 24rpx;
   border-radius: 14rpx;
@@ -109,9 +115,9 @@ button::after {
   line-height: 1.5;
 }
 
-.page { padding-bottom: calc(158rpx + env(safe-area-inset-bottom)) !important; }
-.module-tabbar { position: fixed; z-index: 100; left: 0; right: 0; bottom: 0; min-height: 112rpx; padding: 10rpx 10rpx calc(10rpx + env(safe-area-inset-bottom)); background: #1b1c1f; border-top: 1rpx solid #303238; display: grid; grid-template-columns: repeat(4, 1fr); }
-.module-tab { min-width: 0; height: 92rpx; color: #7a8499; font-size: 20rpx; font-weight: 700; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7rpx; }
+.page { padding-bottom: calc(166rpx + env(safe-area-inset-bottom)) !important; }
+.module-tabbar { position: fixed; z-index: 100; left: 0; right: 0; bottom: 0; width: 100%; min-width: 0; min-height: 112rpx; box-sizing: border-box; padding: 10rpx 10rpx calc(10rpx + env(safe-area-inset-bottom)); background: #1b1c1f; border-top: 1rpx solid #303238; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.module-tab { min-width: 0; min-height: 92rpx; padding: 6rpx 2rpx; color: #7a8499; font-size: 20rpx; line-height: 1.2; font-weight: 700; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7rpx; text-align: center; }
 .module-tab.active { color: #5a9cf5; }
 .module-tab-icon { width: 42rpx; height: 42rpx; }
 .module-home { color: #98a0ad; }

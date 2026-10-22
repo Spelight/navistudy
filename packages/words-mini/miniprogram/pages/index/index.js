@@ -4,21 +4,21 @@ const store = require('../../utils/store');
 const modeCards = [
   { id: 'card', title: '顺序背词', desc: '按当前教材和 Unit 继续推进', icon: 'list-mark', primary: true },
   { id: 'choice', title: '选择巩固', desc: '看英文选释义，适合快速检测', icon: 'choice-mark' },
-  { id: 'spell', title: '拼写训练', desc: '按释义写单词，暴露薄弱拼写', icon: 'spell-mark' },
-  { id: 'wrong-card', title: '错题攻坚', desc: '集中处理选择和拼写错题', icon: 'wrong-mark' },
-  { id: 'fav-card', title: '收藏复习', desc: '只看自己标记的重点词', icon: 'fav-mark' }
+  { id: 'spell', title: '拼写训练', desc: '按释义输入英文，专注拼写', icon: 'spell-mark' }
 ];
 
-function unitOptions(book) {
-  const allWords = data.getWordsByScope(book.id, 'all');
+function unitOptions(book, kind = 'word') {
+  const allWords = data.getItemsByScope(book.id, 'all', kind);
   return [{
     unit: 'all',
     label: '全部 Unit',
-    count: allWords.length
+    count: allWords.length,
+    shortLabel: '全部'
   }].concat(book.units.map(unit => ({
     unit,
     label: data.unitShortLabel(unit).replace(/^B\d\s/, ''),
-    count: data.getWordsByScope(book.id, unit).length
+    count: data.getItemsByScope(book.id, unit, kind).length,
+    shortLabel: data.unitShortLabel(unit).replace(/^B\d\s/, '')
   })));
 }
 
@@ -34,6 +34,8 @@ Page({
     unitIndex: 0,
     activeUnitText: '',
     activeUnit: 'all',
+    activeKind: 'word',
+    kindLabel: '单词',
     progress: {},
     progressMastered: 0,
     progressTotal: 0,
@@ -53,18 +55,27 @@ Page({
 
   prepare() {
     const learning = store.loadData();
-    const books = data.bookStats();
+    const activeKind = wx.getStorageSync('naviwords_content_kind') === 'phrase' ? 'phrase' : 'word';
+    const books = data.bookStats().map(item => Object.assign({}, item, {
+      shortTitle: item.id === 'dual' ? '双学位' : `Book ${String(item.id).replace('b', '')}`
+    }));
     const savedBook = wx.getStorageSync('naviwords_active_book');
     const savedUnit = wx.getStorageSync('naviwords_active_unit') || 'all';
     const activeBook = savedBook || (learning.last_progress && learning.last_progress.book) || 'b5';
     const bookIndex = Math.max(books.findIndex(book => book.id === activeBook), 0);
     const book = books[bookIndex] || books[0];
-    const units = unitOptions(book);
+    const units = unitOptions(book, activeKind);
     const unitIndex = Math.max(units.findIndex(item => String(item.unit) === String(savedUnit)), 0);
     const unit = units[unitIndex] || units[0];
-    const progress = store.getProgressStats(book.id, unit.unit);
+    const progress = store.getProgressStats(book.id, unit.unit, activeKind);
     const p = learning.last_progress;
-    const lastProgressText = p
+    const currentScopeProgress = p
+      && (p.kind || 'word') === activeKind
+      && (p.book || book.id) === book.id
+      && String(p.unit || 'all') === String(unit.unit)
+      ? p
+      : null;
+    const lastProgressText = currentScopeProgress
       ? `${data.getBookById(p.book || book.id).title} · ${p.unit === 'all' ? '全部 Unit' : data.unitShortLabel(p.unit)} · 第 ${(Number(p.index) || 0) + 1} 个`
       : '';
 
@@ -78,13 +89,15 @@ Page({
       unitNames: units.map(item => `${item.label} (${item.count})`),
       unitIndex,
       activeUnit: unit.unit,
+      activeKind,
+      kindLabel: activeKind === 'phrase' ? '词组' : '单词',
       activeUnitText: `${unit.label} (${unit.count})`,
       progress,
       progressMastered: Number(progress.masteredCount || 0),
       progressTotal: Number(progress.total || 0),
       progressPercent: Number(progress.percent || 0),
       remainingCount: Math.max(Number(progress.total || 0) - Number(progress.masteredCount || 0), 0),
-      lastProgress: p || null,
+      lastProgress: currentScopeProgress,
       lastProgressText,
       noticeHidden: !!wx.getStorageSync('naviwords_notice_hidden'),
       favCount: progress.favCount,
@@ -100,10 +113,25 @@ Page({
     this.prepare();
   },
 
+  selectBook(e) {
+    this.changeBook({ detail: { value: e.currentTarget.dataset.index } });
+  },
+
   changeUnit(e) {
     const unitIndex = Number(e.detail.value || 0);
     const unit = this.data.units[unitIndex] || this.data.units[0];
     wx.setStorageSync('naviwords_active_unit', unit.unit);
+    this.prepare();
+  },
+
+  selectUnit(e) {
+    this.changeUnit({ detail: { value: e.currentTarget.dataset.index } });
+  },
+
+  selectKind(e) {
+    const activeKind = e.currentTarget.dataset.kind === 'phrase' ? 'phrase' : 'word';
+    wx.setStorageSync('naviwords_content_kind', activeKind);
+    wx.setStorageSync('naviwords_active_unit', 'all');
     this.prepare();
   },
 
@@ -115,15 +143,17 @@ Page({
   startMode(e) {
     const mode = e.currentTarget.dataset.mode;
     if (mode === 'wrong-card') {
-      wx.navigateTo({ url: `/pages/wrong/wrong?book=${this.data.activeBook}` });
+      wx.navigateTo({ url: `/pages/wrong/wrong?book=${this.data.activeBook}&kind=${this.data.activeKind}` });
       return;
     }
     if (mode === 'fav-card') {
-      wx.navigateTo({ url: `/pages/practice/practice?source=fav&book=${this.data.activeBook}&unit=${this.data.activeUnit}&mode=card` });
+      if (!this.data.favCount) return wx.showToast({ title: `当前范围没有收藏${this.data.kindLabel}`, icon: 'none' });
+      wx.navigateTo({ url: `/pages/practice/practice?source=fav&book=${this.data.activeBook}&unit=${this.data.activeUnit}&kind=${this.data.activeKind}&mode=card` });
       return;
     }
+    if (!this.data.progressTotal) return wx.showToast({ title: `当前范围没有${this.data.kindLabel}`, icon: 'none' });
     wx.navigateTo({
-      url: `/pages/practice/practice?book=${this.data.activeBook}&unit=${this.data.activeUnit}&mode=${mode}`
+      url: `/pages/practice/practice?book=${this.data.activeBook}&unit=${this.data.activeUnit}&kind=${this.data.activeKind}&mode=${mode}`
     });
   },
 
@@ -136,6 +166,7 @@ Page({
     const params = [
       `book=${p.book || this.data.activeBook}`,
       `unit=${p.unit || 'all'}`,
+      `kind=${p.kind || 'word'}`,
       `mode=${p.mode || 'card'}`,
       `index=${p.index || 0}`
     ];
@@ -146,8 +177,9 @@ Page({
   },
 
   startDefault() {
+    if (!this.data.progressTotal) return wx.showToast({ title: `当前范围没有${this.data.kindLabel}`, icon: 'none' });
     wx.navigateTo({
-      url: `/pages/practice/practice?book=${this.data.activeBook}&unit=${this.data.activeUnit}&mode=card`
+      url: `/pages/practice/practice?book=${this.data.activeBook}&unit=${this.data.activeUnit}&kind=${this.data.activeKind}&mode=card`
     });
   },
 
@@ -156,6 +188,8 @@ Page({
   },
 
   goWrong() {
-    wx.navigateTo({ url: `/pages/wrong/wrong?book=${this.data.activeBook}` });
-  }
+    wx.navigateTo({ url: `/pages/wrong/wrong?book=${this.data.activeBook}&kind=${this.data.activeKind}` });
+  },
+
+  goStudy() { wx.reLaunch({ url: '/pa' + 'ges/portal/portal' }); }
 });

@@ -1,0 +1,27 @@
+<view class="page theme-{{naviTheme}} materials-page">
+  <view class="top-title">参考资料</view>
+  <view class="materials-sub">共 {{total}} 份。下载后可在微信中预览或转发到其他应用。</view>
+
+  <view class="material-notice panel">
+    <view class="notice-mark">!</view>
+    <view>历史资料仅供复习参考，法规、编制与时事内容请以当前课程资料和教师要求为准。</view>
+  </view>
+
+  <block wx:for="{{groups}}" wx:key="title" wx:for-item="group">
+    <view class="group-title">{{group.title}}<text>{{group.items.length}} 份</text></view>
+    <view class="materials-list panel">
+      <view wx:for="{{group.items}}" wx:key="id" wx:for-item="material" class="material-row">
+        <view class="file-mark"><view></view></view>
+        <view class="material-copy">
+          <view class="material-name">{{material.name}}</view>
+          <view class="material-note">{{material.note}}</view>
+          <view class="material-meta">{{material.period}} · {{material.roleText}} · {{material.typeText}} · {{material.sizeText}}</view>
+        </view>
+        <button class="download-btn" data-id="{{material.id}}" bindtap="downloadMaterial" loading="{{downloadingId===material.id}}" disabled="{{downloadingId}}">
+          <view class="download-mark"></view>
+          <text>下载</text>
+        </button>
+      </view>
+    </view>
+  </block>
+</view>

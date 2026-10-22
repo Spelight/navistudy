@@ -1028,3 +1028,40 @@ body.nw-modern .app-beta-close { color: #c0c8d2; border: 1px solid var(--nw-line
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+.definition-mode-bar {
+    max-width: 560px;
+    min-height: 48px;
+    margin: 12px auto 16px;
+    padding: 6px 8px 6px 14px;
+    border: 1px solid var(--nw-border, #d9e0ea);
+    border-radius: 12px;
+    background: var(--nw-surface, #fff);
+    display: grid;
+    grid-template-columns: 1fr repeat(3, minmax(64px, auto));
+    align-items: center;
+    gap: 6px;
+    color: var(--nw-muted, #68768c);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.definition-mode-bar button {
+    min-height: 36px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.definition-mode-bar button.active {
+    background: #e6f0ff;
+    color: #1759a8;
+}
+
+@media (max-width: 420px) {
+    .definition-mode-bar { grid-template-columns: repeat(3, 1fr); }
+    .definition-mode-bar > span { grid-column: 1 / -1; }
+}

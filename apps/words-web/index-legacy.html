@@ -1179,7 +1179,6 @@
         cursor: pointer;
     }
 </style>
-	<link rel="icon" type="image/png" href="https://q1.qlogo.cn/g?b=qq&nk=1604214224&s=640">
 </head>
 <body>
 <button class="web-version-toggle" type="button" onclick="switchWordsWebVersion('modern')">切换新版</button>
@@ -1308,13 +1307,6 @@
                     <div style="font-size:16px; font-weight:800; color:var(--purple);" id="stat-quiz">0</div>
                     <div style="font-size:10px; color:var(--text-2);">答题</div>
                 </div>
-            </div>
-            <div class="hp-app-download-row">
-                <div>
-                    <div class="hp-app-download-title">内测 App 下载</div>
-                    <div class="hp-app-download-desc">错过弹窗也可以从这里重新打开下载公告。</div>
-                </div>
-                <button class="hp-app-download-btn" type="button" onclick="openAppBetaNotice()">打开</button>
             </div>
             <div class="hp-changelog">
                 <div class="hp-cl-item">
@@ -4818,73 +4810,12 @@ function _syncUserData() {
     <button class="resume-toast-btn" onclick="resumeProgress()">继续背 →</button>
 </div>
 
-<!-- 内测 App 下载公告 -->
-<div id="app-beta-notice" role="dialog" aria-modal="true" aria-labelledby="app-beta-title" onclick="dismissAppBetaNotice(event)">
-    <div class="app-beta-card">
-        <div class="app-beta-title" id="app-beta-title">内测 App 下载</div>
-        <div class="app-beta-desc">
-            DXIR Words Android 内测版已经开放下载。可在手机上离线背词、练错题、查看词书，并通过用户名同步学习数据。
-        </div>
-        <div class="app-beta-meta">
-            <span class="app-beta-chip" id="app-beta-version">Android 测试版</span>
-            <span>安装 APK 时按系统提示允许安装即可</span>
-        </div>
-        <div class="app-beta-actions">
-            <a class="app-beta-download" id="app-beta-download" href="https://words.dxir.net.cn/app-updates/dxir-words/dxir-words-0.1.37.apk" download>下载内测 App</a>
-            <button class="app-beta-close" type="button" onclick="dismissAppBetaNotice()">稍后再说</button>
-        </div>
-    </div>
-</div>
 <div id="cl-toast"></div>
 <script>
     function switchWordsWebVersion(version) {
         try { localStorage.setItem('dxir_words_web_version', version); } catch(e) {}
         location.href = version === 'legacy' ? 'index-legacy.html' : 'index.html';
     }
-</script>
-<script>
-    (function() {
-        const noticeKey = 'dxir_words_app_beta_notice_20260830';
-        const defaultApk = 'https://words.dxir.net.cn/app-updates/dxir-words/dxir-words-0.1.37.apk';
-        window.dismissAppBetaNotice = function(event) {
-            const notice = document.getElementById('app-beta-notice');
-            if (event && event.target !== notice) return;
-            if (notice) notice.classList.remove('show');
-            try { localStorage.setItem(noticeKey, '1'); } catch(e) {}
-        };
-        window.openAppBetaNotice = function() {
-            const notice = document.getElementById('app-beta-notice');
-            try { localStorage.removeItem(noticeKey); } catch(e) {}
-            if (notice) notice.classList.add('show');
-        };
-        function showAppBetaNotice() {
-            const notice = document.getElementById('app-beta-notice');
-            if (!notice) return;
-            try {
-                if (localStorage.getItem(noticeKey) === '1') return;
-            } catch(e) {}
-            notice.classList.add('show');
-        }
-        function applyLatest(info) {
-            if (!info || !info.apkUrl) return;
-            const link = document.getElementById('app-beta-download');
-            const version = document.getElementById('app-beta-version');
-            if (link) link.href = info.apkUrl || defaultApk;
-            if (version && info.versionName) version.textContent = 'Android ' + info.versionName;
-        }
-        fetch('/app-updates/dxir-words/latest.json', { cache: 'no-store' })
-            .then(function(resp) { return resp.ok ? resp.json() : null; })
-            .then(applyLatest)
-            .catch(function() {});
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') window.dismissAppBetaNotice();
-        });
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() { setTimeout(showAppBetaNotice, 650); });
-        } else {
-            setTimeout(showAppBetaNotice, 650);
-        }
-    })();
 </script>
 </body>
 </html>

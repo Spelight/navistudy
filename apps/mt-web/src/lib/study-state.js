@@ -86,8 +86,13 @@ export function toggleInList(list, id) {
   return list.includes(id) ? list.filter((item) => item !== id) : [...list, id];
 }
 
-export function getStudyStats(state) {
-  const attempts = Object.values(state.attempts);
+export function getStudyStats(state, allowedQuestions = null) {
+  const allowedIds = Array.isArray(allowedQuestions)
+    ? new Set(allowedQuestions.map((question) => typeof question === "string" ? question : question.id))
+    : null;
+  const attempts = Object.entries(state.attempts)
+    .filter(([id]) => !allowedIds || allowedIds.has(id))
+    .map(([, attempt]) => attempt);
   const totalAttempts = attempts.reduce((sum, item) => sum + item.attempts, 0);
   const correctAttempts = attempts.reduce((sum, item) => sum + item.correct, 0);
   return {
@@ -95,8 +100,8 @@ export function getStudyStats(state) {
     totalAttempts,
     correctAttempts,
     accuracy: totalAttempts ? Math.round((correctAttempts / totalAttempts) * 100) : 0,
-    wrong: state.wrong.length,
-    favorites: state.favorites.length,
+    wrong: state.wrong.filter((id) => !allowedIds || allowedIds.has(id)).length,
+    favorites: state.favorites.filter((id) => !allowedIds || allowedIds.has(id)).length,
   };
 }
 

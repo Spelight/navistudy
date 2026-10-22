@@ -18,10 +18,13 @@ function formatTime(ts) {
 }
 
 Page({
+  behaviors: [require('../../../behaviors/theme')],
   data: {
     books: [],
     typeTabs,
     activeBook: 'all',
+    activeKind: 'word',
+    kindTabs: [{ id: 'word', label: '单词' }, { id: 'phrase', label: '词组' }],
     activeType: 'all',
     wrongList: [],
     batchMode: false,
@@ -37,6 +40,7 @@ Page({
     if (query && query.book) {
       this.setData({ activeBook: query.book });
     }
+    if (query && query.kind === 'phrase') this.setData({ activeKind: 'phrase' });
   },
 
   onShow() {
@@ -45,23 +49,27 @@ Page({
 
   refresh() {
     const books = [{ id: 'all', title: '全部教材' }].concat(vocab.bookStats());
-    const all = store.getWrongList();
+    const all = store.getWrongList({ kind: this.data.activeKind });
     const wrongList = store.getWrongList({
       bookId: this.data.activeBook,
-      type: this.data.activeType
-    }).map(entry => ({
-      key: entry.key,
-      selected: this.data.selectedKeys.includes(entry.key),
-      word: entry.item.w,
-      phonetic: entry.item.p,
-      cn: entry.item.c,
-      en: entry.item.e,
-      unitLabel: vocab.unitLabels[entry.item.u] || `Unit ${entry.item.u}`,
-      choice: Number(entry.choice || 0),
-      spell: Number(entry.spell || 0),
-      total: entry.total,
-      lastWrongText: formatTime(entry.lastWrongAt)
-    }));
+      type: this.data.activeType,
+      kind: this.data.activeKind
+    }).map(entry => {
+      const item = vocab.normalizeItem(entry.item);
+      return Object.assign({}, item, {
+        key: entry.key,
+        selected: this.data.selectedKeys.includes(entry.key),
+        word: entry.item.w,
+        phonetic: entry.item.p,
+        cn: item.definitionZh,
+        en: item.definitionEn,
+        unitLabel: vocab.unitLabels[entry.item.u] || `Unit ${entry.item.u}`,
+        choice: Number(entry.choice || 0),
+        spell: Number(entry.spell || 0),
+        total: entry.total,
+        lastWrongText: formatTime(entry.lastWrongAt)
+      });
+    });
     this.setData({
       books,
       wrongList,
@@ -80,6 +88,11 @@ Page({
 
   selectType(e) {
     this.setData({ activeType: e.currentTarget.dataset.type || 'all', selectedKeys: [], selectedCount: 0, allSelected: false });
+    this.refresh();
+  },
+
+  selectKind(e) {
+    this.setData({ activeKind: e.currentTarget.dataset.kind === 'phrase' ? 'phrase' : 'word', selectedKeys: [], selectedCount: 0, allSelected: false });
     this.refresh();
   },
 
@@ -103,6 +116,7 @@ Page({
     const params = [
       'source=wrong',
       `book=${this.data.activeBook}`,
+      `kind=${this.data.activeKind}`,
       `type=${this.data.activeType}`,
       `mode=${mode}`
     ];
@@ -194,7 +208,8 @@ Page({
         if (!res.confirm) return;
         store.clearWrong({
           bookId: this.data.activeBook,
-          type: this.data.activeType
+          type: this.data.activeType,
+          kind: this.data.activeKind
         });
         this.refresh();
       }

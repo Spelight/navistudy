@@ -3,11 +3,13 @@ info:
   title: Navi Passport API
   version: 1.0.0
 servers:
-  - url: https://study.dxir.net.cn
-  - url: https://study.dxir.net.cn/words/navistudy-api
-  - url: https://study.dxir.net.cn/mt/navistudy-api
-  - url: https://words.dxir.net.cn/navistudy-api
-  - url: https://mt.dxir.net.cn/navistudy-api
+  - url: https://study.example.test
+  - url: https://study.example.test/words/navistudy-api
+  - url: https://study.example.test/mt/navistudy-api
+  - url: https://study.example.test/reading/navistudy-api
+  - url: https://study.example.test/naviplan/navistudy-api
+  - url: https://words.example.test/navistudy-api
+  - url: https://mt.example.test/navistudy-api
 paths:
   /api/v1/auth/register:
     post:
@@ -18,7 +20,7 @@ paths:
     post:
       operationId: login
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/AuthRequest' } } } }
-      responses: { '200': { $ref: '#/components/responses/Success' }, '401': { $ref: '#/components/responses/Error' }, '429': { $ref: '#/components/responses/Error' } }
+      responses: { '200': { $ref: '#/components/responses/Success' }, '401': { $ref: '#/components/responses/Error' }, '409': { $ref: '#/components/responses/Error' }, '429': { $ref: '#/components/responses/Error' } }
   /api/v1/auth/refresh:
     post:
       operationId: refresh
@@ -37,6 +39,17 @@ paths:
       operationId: account
       security: [{ bearer: [] }, { cookie: [] }]
       responses: { '200': { $ref: '#/components/responses/Success' } }
+  /api/v1/analytics/events:
+    post:
+      operationId: recordAnalyticsEvents
+      description: Records deduplicated first-party Web or WeChat events. Authentication is optional; guests provide a local visitor ID that is HMAC-pseudonymized before storage.
+      security: [{ bearer: [] }, { cookie: [] }, {}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AnalyticsBatch' }
+      responses: { '200': { $ref: '#/components/responses/Success' }, '400': { $ref: '#/components/responses/Error' } }
   /api/v1/account/password:
     patch:
       operationId: changePassword
@@ -62,6 +75,76 @@ paths:
       operationId: cancelDeletion
       security: [{ bearer: [] }, { cookie: [] }]
       responses: { '200': { $ref: '#/components/responses/Success' } }
+  /api/v1/admin/overview:
+    get:
+      operationId: adminOverview
+      description: Service-owner-only aggregate account, session, product, and security status.
+      security: [{ cookie: [] }]
+      responses: { '200': { $ref: '#/components/responses/Success' }, '403': { $ref: '#/components/responses/Error' } }
+  /api/v1/admin/analytics/overview:
+    get:
+      operationId: adminAnalyticsOverview
+      description: Service-owner-only visit, actor, action, product, and daily trend summary.
+      parameters: [{ name: days, in: query, schema: { type: integer, minimum: 1, maximum: 90, default: 30 } }]
+      security: [{ cookie: [] }]
+      responses: { '200': { $ref: '#/components/responses/Success' }, '403': { $ref: '#/components/responses/Error' } }
+  /api/v1/admin/analytics/content:
+    get:
+      operationId: adminAnalyticsContent
+      description: Service-owner-only content-key ranking without question, vocabulary, or reading bodies.
+      parameters:
+        - { name: product, in: query, required: true, schema: { enum: [words, mt, reading] } }
+        - { name: days, in: query, schema: { type: integer, minimum: 1, maximum: 90, default: 30 } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 5, maximum: 100, default: 20 } }
+      security: [{ cookie: [] }]
+      responses: { '200': { $ref: '#/components/responses/Success' }, '403': { $ref: '#/components/responses/Error' } }
+  /api/v1/admin/users:
+    get:
+      operationId: adminUsers
+      description: Service-owner-only paginated user inventory. Learning document bodies are never returned.
+      parameters:
+        - { name: page, in: query, schema: { type: integer, minimum: 1 } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 10, maximum: 100 } }
+        - { name: query, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { enum: [all, active, pending_delete] } }
+        - { name: service, in: query, schema: { enum: [all, words, mt, reading, plan, tools] } }
+      security: [{ cookie: [] }]
+      responses: { '200': { $ref: '#/components/responses/Success' }, '403': { $ref: '#/components/responses/Error' } }
+  /api/v1/admin/users/{userId}:
+    get:
+      operationId: adminUserDetail
+      parameters: [{ $ref: '#/components/parameters/UserId' }]
+      security: [{ cookie: [] }]
+      responses: { '200': { $ref: '#/components/responses/Success' }, '404': { $ref: '#/components/responses/Error' } }
+  /api/v1/admin/users/{userId}/permissions:
+    patch:
+      operationId: adminUpdatePermissions
+      parameters: [{ $ref: '#/components/parameters/UserId' }]
+      security: [{ cookie: [] }]
+      responses: { '200': { $ref: '#/components/responses/Success' }, '403': { $ref: '#/components/responses/Error' } }
+  /api/v1/admin/users/{userId}/sessions/{sessionId}:
+    delete:
+      operationId: adminRevokeSession
+      parameters:
+        - { $ref: '#/components/parameters/UserId' }
+        - { name: sessionId, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{32}$' } }
+      security: [{ cookie: [] }]
+      responses: { '200': { $ref: '#/components/responses/Success' }, '400': { $ref: '#/components/responses/Error' } }
+  /api/v1/admin/users/{userId}/sessions/revoke-all:
+    post:
+      operationId: adminRevokeAllSessions
+      parameters: [{ $ref: '#/components/parameters/UserId' }]
+      security: [{ cookie: [] }]
+      responses: { '200': { $ref: '#/components/responses/Success' } }
+  /api/v1/admin/audit:
+    get:
+      operationId: adminAudit
+      parameters:
+        - { name: page, in: query, schema: { type: integer, minimum: 1 } }
+        - { name: userId, in: query, schema: { type: string } }
+        - { name: event, in: query, schema: { type: string } }
+      security: [{ cookie: [] }]
+      responses: { '200': { $ref: '#/components/responses/Success' }, '403': { $ref: '#/components/responses/Error' } }
   /oauth/authorize:
     get:
       operationId: authorize
@@ -78,7 +161,7 @@ paths:
       operationId: exchangeCode
       responses: { '200': { $ref: '#/components/responses/Success' }, '401': { $ref: '#/components/responses/Error' } }
   /api/v1/sync/{product}:
-    parameters: [{ name: product, in: path, required: true, schema: { enum: [words, mt] } }]
+    parameters: [{ name: product, in: path, required: true, schema: { enum: [words, mt, reading, plan] } }]
     get:
       operationId: readSyncState
       security: [{ bearer: [] }, { cookie: [] }]
@@ -89,10 +172,47 @@ paths:
       requestBody: { required: true, content: { application/json: { schema: { $ref: './sync-request.schema.json' } } } }
       responses: { '200': { $ref: '#/components/responses/Success' }, '409': { $ref: '#/components/responses/Error' }, '413': { $ref: '#/components/responses/Error' } }
 components:
+  parameters:
+    UserId: { name: userId, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{32}$' } }
   securitySchemes:
     bearer: { type: http, scheme: bearer }
     cookie: { type: apiKey, in: cookie, name: navi_access }
   schemas:
+    AnalyticsBatch:
+      type: object
+      required: [platform, events]
+      properties:
+        platform: { enum: [web, wechat] }
+        visitorId: { type: string, minLength: 8, maxLength: 160 }
+        events:
+          type: array
+          maxItems: 100
+          items:
+            type: object
+            required: [eventId, product, name]
+            properties:
+              eventId: { type: string, minLength: 8, maxLength: 160 }
+              product: { enum: [study, words, mt, reading, plan, tools] }
+              name: { enum: [page_view, app_open, product_open, study_start, study_end, question_answered, favorite_added, favorite_removed, bookmark_added, bookmark_removed, note_saved, plan_import, plan_evaluate, tool_created, tool_response] }
+              itemId: { type: string, maxLength: 200 }
+              value: { type: integer }
+              metadata:
+                type: object
+                additionalProperties: false
+                properties:
+                  version: { type: string }
+                  path: { type: string }
+                  mode: { type: string }
+                  count: { type: integer }
+                  book: { type: string }
+                  unit: { type: string }
+                  source: { type: string }
+                  type: { type: string }
+                  chapter: { type: string }
+                  order: { type: string }
+                  courses: { type: integer }
+                  requirements: { type: integer }
+              occurredAt: { type: integer }
     AuthRequest:
       type: object
       required: [username, password, deviceId, deviceName, clientId]
@@ -101,7 +221,7 @@ components:
         password: { type: string, minLength: 6, maxLength: 128 }
         deviceId: { type: string, minLength: 3, maxLength: 128 }
         deviceName: { type: string, maxLength: 80 }
-        clientId: { enum: [study-web, words-web, mt-web, navistudy-wechat, words-android] }
+        clientId: { enum: [study-web, words-web, mt-web, reading-web, plan-web, navistudy-wechat] }
         transport: { enum: [browser, native] }
     Error:
       type: object

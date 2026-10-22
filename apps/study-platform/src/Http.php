@@ -69,7 +69,7 @@ final class Http
 
     public static function clientIpPrefix(): string
     {
-        $ip = $_SERVER['REMOTE_ADDR'] ?? 'local';
+        $ip = self::clientIp();
         if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
             $parts = explode('.', $ip);
             return implode('.', array_slice($parts, 0, 3)) . '.0/24';
@@ -79,5 +79,10 @@ final class Http
         }
         return 'unknown';
     }
-}
 
+    public static function clientIp(): string
+    {
+        $ip = trim((string) ($_SERVER['REMOTE_ADDR'] ?? ''));
+        return filter_var($ip, FILTER_VALIDATE_IP) ? $ip : 'unknown';
+    }
+}

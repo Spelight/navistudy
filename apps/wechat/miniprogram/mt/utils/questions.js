@@ -27,6 +27,7 @@ function filterQuestions(filters = {}) {
   const type = filters.type || 'all';
   const query = String(filters.query || '').trim().toLowerCase();
   return bank.questions.filter(question => {
+    if (filters.hideLegacy && question.legacy) return false;
     if (chapter !== 'all' && question.chapter !== chapter) return false;
     if (type === 'objective' && question.type === 'short') return false;
     if (type !== 'all' && type !== 'objective' && question.type !== type) return false;
@@ -34,10 +35,11 @@ function filterQuestions(filters = {}) {
     const haystack = [
       question.stem,
       question.chapter,
-      question.source,
-      ...(question.sources || []),
-      ...(question.options || []).map(option => option.text)
-    ].join(' ').toLowerCase();
+      question.source
+    ].concat(
+      question.sources || [],
+      (question.options || []).map(option => option.text)
+    ).join(' ').toLowerCase();
     return haystack.includes(query);
   });
 }

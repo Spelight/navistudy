@@ -1,13 +1,16 @@
 {
   "name": "navistudy",
-  "version": "0.1.0",
-  "private": false,
-  "description": "Open-source source tree for the NaviStudy learning platform",
+  "version": "4.0.2",
+  "private": true,
+  "description": "Public source showcase for the NaviStudy learning platform",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "test:platform": "npm --prefix apps/study-platform test",
-    "test:wechat": "npm --prefix apps/wechat test",
-    "test:words-mini": "npm --prefix packages/words-mini test",
-    "test:mt-mini": "npm --prefix packages/mt-mini test",
-    "test": "npm run test:platform && npm run test:wechat && npm run test:words-mini && npm run test:mt-mini"
+    "demo:data": "node scripts/demo-data.cjs",
+    "sync:wechat": "node apps/wechat/scripts/sync-modules.cjs",
+    "test": "node scripts/public-check.cjs && node apps/reading-web/passport-sync.test.cjs && npm --prefix apps/wechat test && npm --prefix packages/words-mini test && npm --prefix packages/mt-mini test && npm --prefix apps/mt-web test",
+    "build:mt": "npm --prefix apps/mt-web run build",
+    "build:plan": "npm --prefix apps/plan/frontend run build"
   }
 }
