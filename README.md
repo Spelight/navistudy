@@ -1,5 +1,7 @@
 # NaviStudy
 
+**简体中文** | [English](README.en.md)
+
 **把背词、刷题、精读与学业规划连接起来的学习平台。**
 
 NaviStudy 从真实的课程复习需求出发，提供 Web 与微信小程序客户端。用户在本机练习和保存进度，通过 NaviPassport 登录后按产品同步学习数据。
